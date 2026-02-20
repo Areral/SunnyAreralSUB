@@ -4,170 +4,237 @@ import os
 import subprocess
 import time
 import signal
-import threading
-from typing import Optional
 import aiohttp
 from aiohttp_socks import ProxyConnector
 from loguru import logger
+from typing import List
 
 from core.models import ProxyNode
 from core.settings import CONFIG
 
-_port_counter = 20000
-_port_lock = threading.Lock()
+class BatchEngine:
+    """
+    Движок пакетной проверки.
+    Запускает один экземпляр Sing-box для N прокси одновременно.
+    Решает проблему 'Process Hell'.
+    """
+    
+    BASE_PORT = 10000  # Начальный порт для тестов
 
-def get_free_port() -> int:
-    global _port_counter
-    with _port_lock:
-        port = _port_counter
-        _port_counter += 1
-        if _port_counter > 60000:
-            _port_counter = 20000
-        return port
-
-class SingBoxEngine:
     @staticmethod
-    def _generate_config(node: ProxyNode, local_port: int) -> dict:
-        c = node.config
-        outbound = {"tag": "proxy", "server": c.server, "server_port": c.port}
+    def _generate_batch_config(nodes: List[ProxyNode]) -> dict:
+        """Генерирует единый JSON для пачки прокси"""
+        inbounds = []
+        outbounds = []
+        rules = []
+        
+        # 1. Создаем пары Inbound -> Outbound для каждого прокси
+        for i, node in enumerate(nodes):
+            local_port = BatchEngine.BASE_PORT + i
+            tag = f"proxy-{i}"
+            
+            # Входящий SOCKS на уникальном порту
+            inbounds.append({
+                "type": "socks",
+                "tag": f"in-{i}",
+                "listen": "127.0.0.1",
+                "listen_port": local_port
+            })
+            
+            # Исходящий прокси (конвертируем из нашей модели)
+            outbound = BatchEngine._node_to_outbound(node, tag)
+            outbounds.append(outbound)
+            
+            # Правило маршрутизации: трафик с in-X идет в proxy-X
+            rules.append({
+                "inbound": [f"in-{i}"],
+                "outbound": tag
+            })
 
-        if node.protocol == "vless":
-            outbound.update({"type": "vless", "uuid": c.uuid, "flow": c.flow or "", "packet_encoding": "xudp"})
-        elif node.protocol == "vmess":
-            outbound.update({"type": "vmess", "uuid": c.uuid, "security": "auto", "packet_encoding": "xudp"})
-        elif node.protocol == "trojan":
-            outbound.update({"type": "trojan", "password": c.password})
-        elif node.protocol == "ss":
-            outbound.update({"type": "shadowsocks", "method": c.method, "password": c.password})
-
-        # Transport
-        if c.type == "ws":
-            outbound["transport"] = {"type": "ws", "path": c.path, "headers": {"Host": c.host}}
-        elif c.type == "grpc":
-            outbound["transport"] = {"type": "grpc", "service_name": c.service_name}
-        elif c.type in ["xhttp", "httpupgrade"]: # ИСПРАВЛЕНО
-            outbound["transport"] = {"type": "httpupgrade", "path": c.path or "/", "host": c.host or ""}
-
-        # Security
-        if c.security in ["tls", "reality", "auto"]: # ИСПРАВЛЕНО
-            tls_conf = {
-                "enabled": True, 
-                "server_name": c.sni or c.host or c.server, 
-                "utls": {"enabled": True, "fingerprint": c.fp or "chrome"}
-            }
-            if c.security == "reality":
-                tls_conf["reality"] = {"enabled": True, "public_key": c.pbk, "short_id": c.sid or ""}
-                if c.spx and c.spx != "/":
-                    tls_conf["reality"]["spider_x"] = c.spx
-            outbound["tls"] = tls_conf
-
+        # 2. Добавляем Direct и DNS
+        outbounds.append({"type": "direct", "tag": "direct"})
+        
         return {
             "log": {"level": "panic", "output": "discard"},
             "dns": {
                 "servers": [
-                    {"tag": "google", "address": "8.8.8.8", "detour": "proxy"},
-                    {"tag": "cf", "address": "1.1.1.1", "detour": "proxy"}
+                    {"tag": "remote", "address": "1.1.1.1", "detour": "direct"}, # Резолвим снаружи туннеля (Fix DNS Trap)
                 ],
                 "strategy": "ipv4_only"
             },
-            "inbounds": [{"type": "socks", "tag": "socks-in", "listen": "127.0.0.1", "listen_port": local_port}],
-            "outbounds": [outbound]
+            "inbounds": inbounds,
+            "outbounds": outbounds,
+            "route": {
+                "rules": rules,
+                "final": "direct" # Fallback, но правила выше перехватят всё
+            }
         }
 
-    async def _run_test(self, node: ProxyNode, test_url: str, check_geo: bool = False) -> bool:
-        local_port = get_free_port()
-        config_path = f"data/config_{local_port}.json"
+    @staticmethod
+    def _node_to_outbound(node: ProxyNode, tag: str) -> dict:
+        """Конвертер модели ProxyNode в конфиг Sing-box"""
+        c = node.config
+        base = {"tag": tag, "server": c.server, "server_port": c.port}
+        
+        if node.protocol == "vless":
+            base.update({"type": "vless", "uuid": c.uuid, "flow": c.flow or "", "packet_encoding": "xudp"})
+        elif node.protocol == "vmess":
+            base.update({"type": "vmess", "uuid": c.uuid, "security": "auto", "packet_encoding": "xudp"})
+        elif node.protocol == "trojan":
+            base.update({"type": "trojan", "password": c.password})
+        elif node.protocol == "ss":
+            base.update({"type": "shadowsocks", "method": c.method, "password": c.password})
+            
+        # Transport
+        if c.type == "ws":
+            base["transport"] = {"type": "ws", "path": c.path, "headers": {"Host": c.host}}
+        elif c.type == "grpc":
+            base["transport"] = {"type": "grpc", "service_name": c.service_name}
+        elif c.type in ["xhttp", "httpupgrade"]:
+            base["transport"] = {"type": "httpupgrade", "path": c.path or "/", "host": c.host or ""}
+            
+        # TLS
+        if c.security in ["tls", "reality", "auto"]:
+            tls = {
+                "enabled": True, 
+                "server_name": c.sni or c.host or c.server,
+                "utls": {"enabled": True, "fingerprint": c.fp or "chrome"}
+            }
+            if c.security == "reality":
+                tls["reality"] = {"enabled": True, "public_key": c.pbk, "short_id": c.sid or ""}
+                if c.spx and c.spx != "/": tls["reality"]["spider_x"] = c.spx
+            base["tls"] = tls
+            
+        return base
+
+    async def check_batch(self, nodes: List[ProxyNode]) -> List[ProxyNode]:
+        """Запускает проверку пачки"""
+        if not nodes: return []
+        
+        alive_nodes = []
+        config_path = "data/batch_config.json"
         os.makedirs("data", exist_ok=True)
         
         proc = None
         try:
+            # 1. Генерируем конфиг
             with open(config_path, "w") as f:
-                json.dump(self._generate_config(node, local_port), f)
+                json.dump(self._generate_batch_config(nodes), f)
             
-            # ИСПРАВЛЕНО: Полный вызов Popen
+            # 2. Запускаем ядро (ОДИН РАЗ на 50 прокси!)
             proc = subprocess.Popen(
                 ["sing-box", "run", "-c", config_path],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 preexec_fn=os.setsid
             )
-            await asyncio.sleep(2.0)
-
-            if proc.poll() is not None: return False
-
-            connector = ProxyConnector.from_url(f"socks5://127.0.0.1:{local_port}")
-            timeout = aiohttp.ClientTimeout(total=25, connect=10, sock_read=15)
+            await asyncio.sleep(2.5) # Даем ядру прогрузиться
             
-            async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-                
-                # 1. LATENCY
-                t0 = time.perf_counter()
-                async with session.get("http://www.gstatic.com/generate_204", allow_redirects=False) as resp:
-                    if resp.status != 204: raise Exception("Strict test failed")
-                    node.latency = int((time.perf_counter() - t0) * 1000)
+            if proc.poll() is not None:
+                logger.error("Sing-box batch process died immediately!")
+                return []
 
-                # 2. SPEED
-                t_start = time.perf_counter()
-                async with session.get(test_url) as resp:
-                    if resp.status != 200: raise Exception("Download Failed")
-                    
-                    total_bytes = 0
-                    async for chunk in resp.content.iter_chunked(65536):
-                        total_bytes += len(chunk)
-                    
-                    duration = time.perf_counter() - t_start
-                    if duration < 0.3: duration = 0.3
-                    
-                    speed = (total_bytes * 8) / (duration * 1_000_000)
-                    if speed > 2500: speed = 999.0 
-                    node.speed = round(speed, 1)
-
-                # 3. GEO
-                if check_geo:
-                    geo_api = CONFIG.checking.get('geo_api', 'https://ipwho.is/')
-                    try:
-                        async with session.get(geo_api, timeout=4) as geo:
-                            data = await geo.json()
-                            if data.get('success'): node.country = data.get('country_code', 'UN')
-                    except: pass
-
-                return True
-
-        except Exception:
-            return False
+            # 3. Параллельная проверка через aiohttp
+            # Создаем задачи для каждого узла на его порту
+            tasks = []
+            for i, node in enumerate(nodes):
+                port = self.BASE_PORT + i
+                tasks.append(self._http_check(node, port))
+            
+            # Ждем выполнения всех проверок
+            results = await asyncio.gather(*tasks)
+            alive_nodes = [n for n in results if n is not None]
+            
+        except Exception as e:
+            logger.error(f"Batch error: {e}")
         finally:
+            # Убиваем ядро
             if proc:
                 try:
                     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                    proc.wait(timeout=1)
+                    proc.wait(timeout=2)
                 except:
                     try: proc.kill()
                     except: pass
-            if os.path.exists(config_path):
-                try: os.remove(config_path)
+            if os.path.exists(config_path): os.remove(config_path)
+            
+        return alive_nodes
+
+    async def _http_check(self, node: ProxyNode, port: int) -> Optional[ProxyNode]:
+        """Индивидуальная проверка через локальный порт"""
+        connector = ProxyConnector.from_url(f"socks5://127.0.0.1:{port}")
+        # Таймаут на весь тест
+        timeout = aiohttp.ClientTimeout(total=CONFIG.system.get('http_timeout', 20))
+        
+        try:
+            async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+                # 1. Latency (Real Request)
+                t0 = time.perf_counter()
+                async with session.get("http://www.gstatic.com/generate_204", allow_redirects=False) as resp:
+                    if resp.status != 204: raise Exception(f"Status {resp.status}")
+                    node.latency = int((time.perf_counter() - t0) * 1000)
+
+                # 2. Speed (5MB)
+                url = CONFIG.checking.get('speedtest_url', "http://speed.cloudflare.com/__down?bytes=5000000")
+                t_start = time.perf_counter()
+                async with session.get(url) as resp:
+                    if resp.status != 200: raise Exception("Download fail")
+                    
+                    total = 0
+                    async for chunk in resp.content.iter_chunked(65536):
+                        total += len(chunk)
+                    
+                    dur = time.perf_counter() - t_start
+                    if dur < 0.2: dur = 0.2 # Защита от деления на 0
+                    
+                    speed = (total * 8) / (dur * 1_000_000)
+                    if speed > 3000: speed = 0 # Фильтр багов
+                    node.speed = round(speed, 1)
+
+                # 3. Geo
+                try:
+                    async with session.get("https://ipwho.is/", timeout=4) as geo:
+                        data = await geo.json()
+                        if data.get('success'): node.country = data.get('country_code', 'UN')
                 except: pass
 
-    async def verify_node(self, node: ProxyNode) -> bool:
-        test_url = CONFIG.checking.get('speedtest_url', "http://speed.cloudflare.com/__down?bytes=5000000")
-        return await self._run_test(node, test_url, check_geo=True)
-
-    async def champion_run(self, node: ProxyNode) -> float:
-        test_url = CONFIG.checking.get('champion_test_url', "http://speed.cloudflare.com/__down?bytes=25000000")
-        success = await self._run_test(node, test_url, check_geo=False)
-        if success: return node.speed
-        return 0.0
+                # Финальный вердикт
+                if node.speed >= CONFIG.checking.get('min_speed', 2.0):
+                    return node
+                    
+        except Exception as e:
+            # logger.debug(f"Node failed: {e}") # Можно включить для отладки
+            return None
+        return None
 
 class Inspector:
+    """Интерфейс для main.py"""
     def __init__(self):
-        self.engine = SingBoxEngine()
-        threads = CONFIG.system.get('threads', 15)
-        self.sem = asyncio.Semaphore(threads)
+        self.batch_engine = BatchEngine()
 
-    async def check_pipeline(self, node: ProxyNode) -> Optional[ProxyNode]:
-        async with self.sem:
-            is_alive = await self.engine.verify_node(node)
-            min_speed = CONFIG.checking.get('min_speed', 2.0)
+    async def process_all(self, nodes: List[ProxyNode]) -> List[ProxyNode]:
+        """Обрабатывает все узлы пакетами"""
+        alive_total = []
+        batch_size = CONFIG.BATCH_SIZE
+        total = len(nodes)
+        
+        logger.info(f"🚀 Запуск проверки: {total} узлов, размер пакета: {batch_size}")
+        
+        for i in range(0, total, batch_size):
+            batch = nodes[i : i + batch_size]
+            logger.info(f"📦 Пакет {i // batch_size + 1}: проверка {len(batch)} узлов...")
             
-            if is_alive and node.speed >= min_speed:
-                logger.info(f"✅ Alive: {node.country} | {node.latency}ms | {node.speed} Mbps")
-                return node
-            return None
+            results = await self.batch_engine.check_batch(batch)
+            alive_total.extend(results)
+            
+            logger.info(f"   ✨ Живых в пакете: {len(results)}")
+            
+        return alive_total
+    
+    async def champion_run(self, node: ProxyNode) -> float:
+        """Отдельный тест для чемпиона (одиночный запуск)"""
+        # Для чемпиона используем старый метод одиночного запуска, 
+        # эмулируя пакет из 1 элемента
+        results = await self.batch_engine.check_batch([node])
+        if results:
+            return results[0].speed
+        return 0.0
