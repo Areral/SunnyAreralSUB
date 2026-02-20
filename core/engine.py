@@ -126,7 +126,7 @@ class SingBoxEngine:
                         data = await geo.json()
                         if data.get('success'): 
                             node.country = data.get('country_code', 'UN')
-                except: pass
+                except Exception: pass
 
                 return True, "OK"
                 
@@ -135,7 +135,7 @@ class SingBoxEngine:
         except aiohttp.ClientResponseError as e: return False, f"HTTP_Err_{e.status}"
         except Exception: return False, "Protocol_Error"
 
-    async def verify_batch(self, nodes: List, start_port: int) -> List[Tuple]:
+    async def verify_batch(self, nodes: List, start_port: int) -> List]:
         if not nodes: return[]
         
         config_path = f"data/batch_{start_port}.json"
@@ -177,12 +177,12 @@ class SingBoxEngine:
                 try:
                     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
                     proc.wait(timeout=2)
-                except:
+                except Exception:
                     try: proc.kill()
-                    except: pass
+                    except Exception: pass
             if os.path.exists(config_path):
                 try: os.remove(config_path)
-                except: pass
+                except Exception: pass
                 
         return results
 
