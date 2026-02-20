@@ -13,7 +13,6 @@ from loguru import logger
 from core.models import ProxyNode
 from core.settings import CONFIG
 
-# Потокобезопасный генератор портов
 _port_counter = 20000
 _port_lock = threading.Lock()
 
@@ -41,36 +40,36 @@ class SingBoxEngine:
         elif node.protocol == "ss":
             outbound.update({"type": "shadowsocks", "method": c.method, "password": c.password})
 
-        # Транспорт
+        # Transport
         if c.type == "ws":
-            outbound["transport"] = {"type": "ws", "path": c.path, "headers": {"Host": c.host}}
+            outbound = {"type": "ws", "path": c.path, "headers": {"Host": c.host}}
         elif c.type == "grpc":
-            outbound["transport"] = {"type": "grpc", "service_name": c.service_name}
-        elif c.type in ["xhttp", "httpupgrade"]:
-            outbound["transport"] = {"type": "httpupgrade", "path": c.path or "/", "host": c.host or ""}
+            outbound = {"type": "grpc", "service_name": c.service_name}
+        elif c.type in:
+            outbound = {"type": "httpupgrade", "path": c.path or "/", "host": c.host or ""}
 
-        # TLS / Reality
-        if c.security in ["tls", "reality", "auto"]:
+        # Security
+        if c.security in:
             tls_conf = {
                 "enabled": True, 
                 "server_name": c.sni or c.host or c.server, 
                 "utls": {"enabled": True, "fingerprint": c.fp or "chrome"}
             }
             if c.security == "reality":
-                tls_conf["reality"] = {"enabled": True, "public_key": c.pbk, "short_id": c.sid or ""}
-            outbound["tls"] = tls_conf
+                tls_conf = {"enabled": True, "public_key": c.pbk, "short_id": c.sid or ""}
+                # ФИКС 3: ПЕРЕДАЕМ SPIDER_X
+                if c.spx and c.spx != "/":
+                    tls_conf = c.spx
+            outbound = tls_conf
 
         return {
             "log": {"level": "panic", "output": "discard"},
             "dns": {
-                "servers": [
-                    {"tag": "google", "address": "8.8.8.8", "detour": "proxy"},
-                    {"tag": "cf", "address": "1.1.1.1", "detour": "proxy"}
-                ],
+                "servers":,
                 "strategy": "ipv4_only"
             },
-            "inbounds": [{"type": "socks", "tag": "socks-in", "listen": "127.0.0.1", "listen_port": local_port}],
-            "outbounds": [outbound]
+            "inbounds":,
+            "outbounds":
         }
 
     async def _run_test(self, node: ProxyNode, test_url: str, check_geo: bool = False) -> bool:
@@ -83,8 +82,7 @@ class SingBoxEngine:
             with open(config_path, "w") as f:
                 json.dump(self._generate_config(node, local_port), f)
             
-            proc = subprocess.Popen(
-                ["sing-box", "run", "-c", config_path],
+            proc = subprocess.Popen(,
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 preexec_fn=os.setsid
             )
@@ -145,29 +143,22 @@ class SingBoxEngine:
                 except: pass
 
     async def verify_node(self, node: ProxyNode) -> bool:
-        # Безопасное получение URL (fallback на Cloudflare 5MB)
         test_url = CONFIG.checking.get('speedtest_url', "http://speed.cloudflare.com/__down?bytes=5000000")
         return await self._run_test(node, test_url, check_geo=True)
 
     async def champion_run(self, node: ProxyNode) -> float:
-        logger.info(f"🏆 Тест чемпиона: {node.config.server}")
-        # Безопасное получение URL (fallback на Cloudflare 25MB)
         test_url = CONFIG.checking.get('champion_test_url', "http://speed.cloudflare.com/__down?bytes=25000000")
-        
         success = await self._run_test(node, test_url, check_geo=False)
-        if success:
-            logger.info(f"🚀 Скорость чемпиона подтверждена: {node.speed} Mbps")
-            return node.speed
+        if success: return node.speed
         return 0.0
 
 class Inspector:
     def __init__(self):
         self.engine = SingBoxEngine()
-        # Безопасное получение кол-ва потоков
         threads = CONFIG.system.get('threads', 15)
         self.sem = asyncio.Semaphore(threads)
 
-    async def check_pipeline(self, node: ProxyNode) -> Optional[ProxyNode]:
+    async def check_pipeline(self, node: ProxyNode) -> Optional:
         async with self.sem:
             is_alive = await self.engine.verify_node(node)
             min_speed = CONFIG.checking.get('min_speed', 2.0)
