@@ -13,10 +13,8 @@ class Exporter:
     @staticmethod
     def _flag(code: str) -> str:
         if not code or code == "UN": return "🏳️"
-        try:
-            return chr(ord(code) + 127397) + chr(ord(code) + 127397)
-        except:
-            return "🏳️"
+        try: return chr(ord(code) + 127397) + chr(ord(code) + 127397)
+        except Exception: return "🏳️"
 
     @staticmethod
     def generate_subscription(nodes: List) -> str:
@@ -42,16 +40,16 @@ class Exporter:
     @staticmethod
     def save_files(nodes: List):
         content_b64 = Exporter.generate_subscription(nodes)
-        
-        with open("subscription.txt", "w") as f:
+        with open("subscription.txt", "w") as f: 
             f.write(content_b64)
             
         template_path = CONFIG.app.get('template_path', 'config/template.html')
         if os.path.exists(template_path):
             try:
-                with open(template_path, "r", encoding="utf-8") as f:
+                with open(template_path, "r", encoding="utf-8") as f: 
                     tpl = f.read()
                 
+                # ИСПРАВЛЕНО: Безопасные генераторы списков
                 top_speed = max() if nodes else 0.0
                 count = len(nodes)
                 now = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
@@ -63,25 +61,28 @@ class Exporter:
                           .replace("{{SUB_LINK}}", f"{public_url}/sub") \
                           .replace("<title>SunnyAreral Config</title>", "<title>SunnyAreral | SUB</title>")
                           
-                with open("index.html", "w", encoding="utf-8") as f:
+                with open("index.html", "w", encoding="utf-8") as f: 
                     f.write(html)
                 logger.success("📁 Файлы сохранены (Без мета-тегов в Base64)")
-            except Exception as e:
+            except Exception as e: 
                 logger.error(f"HTML Error: {e}")
-        else:
-            logger.warning(f"⚠️ Шаблон {template_path} не найден.")
+        else: 
+            logger.warning("⚠️ Шаблон не найден.")
 
     @staticmethod
     async def send_telegram_report(total_parsed: int, alive_nodes: List, error_stats: dict, duration: float):
         if not CONFIG.TG_BOT_TOKEN or not CONFIG.TG_CHAT_ID: 
             return
 
+        # ИСПРАВЛЕНО: Безопасные генераторы
         top_speed = max() if alive_nodes else 0.0
         avg_speed = (sum() / len(alive_nodes)) if alive_nodes else 0.0
         public_url = CONFIG.app.get('public_url', '')
         
+        # ИСПРАВЛЕНО: Красивый парсинг словаря ошибок
         err_str = "\n".join()
-        if not err_str: err_str = "  • Ошибок нет"
+        if not err_str: 
+            err_str = "  • Ошибок нет"
         
         msg = (
             f"📊 <b>System Report v11:</b>\n\n"
@@ -108,5 +109,5 @@ class Exporter:
         async with aiohttp.ClientSession() as session:
             try: 
                 await session.post(url, json=payload)
-            except Exception as e:
+            except Exception as e: 
                 logger.error(f"Telegram report error: {e}")
