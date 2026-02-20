@@ -14,15 +14,15 @@ class Exporter:
     def _flag(code: str) -> str:
         """Конвертирует код страны в эмодзи-флаг"""
         if not code or code == "UN": return "🏳️"
-        try: 
-            return chr(ord(code) + 127397) + chr(ord(code) + 127397)
-        except: 
+        try:
+            return chr(ord(code[0]) + 127397) + chr(ord(code[1]) + 127397)
+        except:
             return "🏳️"
 
     @staticmethod
-    def generate_subscription(nodes: List) -> str:
+    def generate_subscription(nodes: List[ProxyNode]) -> str:
         """Генерирует Base64 строку с подпиской без мета-тегов"""
-        links =[]
+        links = []
         # Сортируем узлы по скорости (от самых быстрых к медленным)
         nodes.sort(key=lambda x: x.speed, reverse=True)
         
@@ -47,7 +47,7 @@ class Exporter:
         return base64.b64encode(full_text.encode('utf-8')).decode('utf-8')
 
     @staticmethod
-    def save_files(nodes: List):
+    def save_files(nodes: List[ProxyNode]):
         """Сохраняет файл подписки и генерирует HTML сайт"""
         content_b64 = Exporter.generate_subscription(nodes)
         
@@ -62,8 +62,8 @@ class Exporter:
                 with open(template_path, "r", encoding="utf-8") as f:
                     tpl = f.read()
                 
-                # Безопасное вычисление метрик
-                top_speed = max() if nodes else 0.0
+                # ИСПРАВЛЕНИЕ: Передаем список [n.speed for n in nodes] в max()
+                top_speed = max([n.speed for n in nodes]) if nodes else 0.0
                 count = len(nodes)
                 now = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
                 public_url = CONFIG.app.get('public_url', '')
@@ -84,14 +84,14 @@ class Exporter:
             logger.warning(f"⚠️ Шаблон {template_path} не найден.")
 
     @staticmethod
-    async def send_telegram_report(total_parsed: int, alive_nodes: List, duration: float):
+    async def send_telegram_report(total_parsed: int, alive_nodes: List[ProxyNode], duration: float):
         """Отправляет красивый отчет в Telegram"""
         if not CONFIG.TG_BOT_TOKEN or not CONFIG.TG_CHAT_ID: 
             return
 
-        # Безопасное вычисление статистики для отчета
-        top_speed = max() if alive_nodes else 0.0
-        avg_speed = sum() / len(alive_nodes) if alive_nodes else 0.0
+        # ИСПРАВЛЕНИЕ: Передаем списки в max() и sum()
+        top_speed = max([n.speed for n in alive_nodes]) if alive_nodes else 0.0
+        avg_speed = (sum([n.speed for n in alive_nodes]) / len(alive_nodes)) if alive_nodes else 0.0
         public_url = CONFIG.app.get('public_url', '')
         
         msg = (
@@ -113,7 +113,7 @@ class Exporter:
         }
         
         if CONFIG.TG_TOPIC_ID: 
-            payload = CONFIG.TG_TOPIC_ID
+            payload["message_thread_id"] = CONFIG.TG_TOPIC_ID
             
         async with aiohttp.ClientSession() as session:
             try: 
