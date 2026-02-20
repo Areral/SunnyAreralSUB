@@ -15,26 +15,22 @@ class LinkParser:
     def decode_base64(s: str) -> str:
         """Безопасное декодирование Base64 с защитой от кириллицы"""
         try:
-            # Очищаем строку от мусора (пробелы, переносы)
             s = s.strip().replace('-', '+').replace('_', '/')
             s = re.sub(r'\s+', '', s)
-            # Восстанавливаем правильный паддинг
             padded = s + '=' * (-len(s) % 4)
-            # Принудительно кодируем в ASCII, отбрасывая кириллицу, которая ломает декодер
             ascii_bytes = padded.encode('ascii', 'ignore')
             return base64.b64decode(ascii_bytes).decode('utf-8', 'ignore')
-        except Exception as e:
-            # Если декодировать не вышло, отдаем как есть
+        except Exception:
             return s
 
     @staticmethod
     def is_valid_host(host: str) -> bool:
-        """Отсеиваем локальные IP вроде 0.0.0.0, которые ломают проверку Sing-box"""
+        """Отсеиваем локальные IP вроде 0.0.0.0"""
         try:
             ip = ipaddress.ip_address(host)
             return ip.is_global
         except ValueError:
-            return True # Это домен (например, sni.vk.com), считаем валидным
+            return True 
 
     @staticmethod
     def parse_vless(line: str) -> ProxyNode | None:
@@ -138,9 +134,10 @@ class LinkParser:
         except: return None
 
     async def fetch_and_parse(self) -> List:
-        nodes = []
+        nodes =[]
         seen = set()
         
+        # ИСПРАВЛЕНО: Безопасное получение источников
         sources =[]
         if CONFIG.SUBSCRIPTION_SOURCES:
             sources =
@@ -153,15 +150,11 @@ class LinkParser:
                     async with session.get(url, timeout=15) as resp:
                         content = await resp.text()
                         
-                        # ИСПРАВЛЕНИЕ: Надежная детекция Base64. 
-                        # Если в тексте вообще нет "://", значит это чистый Base64.
                         if "://" not in content:
                             content = LinkParser.decode_base64(content)
                         
                         for line in content.splitlines():
                             line = line.strip()
-                            
-                            # Пропускаем пустые строки и комментарии (например #profile-title)
                             if not line or line.startswith("#"): continue
                             
                             node = None
@@ -170,7 +163,6 @@ class LinkParser:
                             elif line.startswith("trojan://"): node = self.parse_trojan(line)
                             elif line.startswith("ss://"): node = self.parse_ss(line)
                             
-                            # Защита от дубликатов по IP:Port
                             if node and node.unique_id not in seen:
                                 nodes.append(node)
                                 seen.add(node.unique_id)
