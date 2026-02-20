@@ -7,7 +7,8 @@ import signal
 import aiohttp
 from aiohttp_socks import ProxyConnector
 from loguru import logger
-from typing import List
+# ИСПРАВЛЕНО: Добавлен Optional
+from typing import List, Optional
 
 from core.models import ProxyNode
 from core.settings import CONFIG
@@ -58,7 +59,7 @@ class BatchEngine:
             "log": {"level": "panic", "output": "discard"},
             "dns": {
                 "servers": [
-                    {"tag": "remote", "address": "1.1.1.1", "detour": "direct"}, # Резолвим снаружи туннеля (Fix DNS Trap)
+                    {"tag": "remote", "address": "1.1.1.1", "detour": "direct"}, # Резолвим снаружи
                 ],
                 "strategy": "ipv4_only"
             },
@@ -66,7 +67,7 @@ class BatchEngine:
             "outbounds": outbounds,
             "route": {
                 "rules": rules,
-                "final": "direct" # Fallback, но правила выше перехватят всё
+                "final": "direct"
             }
         }
 
@@ -121,7 +122,8 @@ class BatchEngine:
             with open(config_path, "w") as f:
                 json.dump(self._generate_batch_config(nodes), f)
             
-            # 2. Запускаем ядро (ОДИН РАЗ на 50 прокси!)
+            # 2. Запускаем ядро
+            # Используем setsid для группового убийства процессов
             proc = subprocess.Popen(
                 ["sing-box", "run", "-c", config_path],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -134,7 +136,6 @@ class BatchEngine:
                 return []
 
             # 3. Параллельная проверка через aiohttp
-            # Создаем задачи для каждого узла на его порту
             tasks = []
             for i, node in enumerate(nodes):
                 port = self.BASE_PORT + i
@@ -162,7 +163,6 @@ class BatchEngine:
     async def _http_check(self, node: ProxyNode, port: int) -> Optional[ProxyNode]:
         """Индивидуальная проверка через локальный порт"""
         connector = ProxyConnector.from_url(f"socks5://127.0.0.1:{port}")
-        # Таймаут на весь тест
         timeout = aiohttp.ClientTimeout(total=CONFIG.system.get('http_timeout', 20))
         
         try:
@@ -201,8 +201,7 @@ class BatchEngine:
                 if node.speed >= CONFIG.checking.get('min_speed', 2.0):
                     return node
                     
-        except Exception as e:
-            # logger.debug(f"Node failed: {e}") # Можно включить для отладки
+        except Exception:
             return None
         return None
 
@@ -214,7 +213,8 @@ class Inspector:
     async def process_all(self, nodes: List[ProxyNode]) -> List[ProxyNode]:
         """Обрабатывает все узлы пакетами"""
         alive_total = []
-        batch_size = CONFIG.BATCH_SIZE
+        # Безопасное получение размера пакета
+        batch_size = getattr(CONFIG, 'BATCH_SIZE', 50)
         total = len(nodes)
         
         logger.info(f"🚀 Запуск проверки: {total} узлов, размер пакета: {batch_size}")
@@ -232,8 +232,6 @@ class Inspector:
     
     async def champion_run(self, node: ProxyNode) -> float:
         """Отдельный тест для чемпиона (одиночный запуск)"""
-        # Для чемпиона используем старый метод одиночного запуска, 
-        # эмулируя пакет из 1 элемента
         results = await self.batch_engine.check_batch([node])
         if results:
             return results[0].speed
