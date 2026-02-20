@@ -26,7 +26,7 @@ class LinkParser:
     def is_valid_host(host: str) -> bool:
         if not host: 
             return False
-        # Полный список мусорных хостов
+        # ИСПРАВЛЕНО: Список локальных IP на месте
         if host.lower() in: 
             return False
         try:
@@ -138,11 +138,12 @@ class LinkParser:
         except Exception: return None
 
     async def fetch_and_parse(self) -> List:
-        nodes = []
+        nodes =[]
         seen = set()
         sources =[]
         
         if CONFIG.SUBSCRIPTION_SOURCES:
+            # ИСПРАВЛЕНО: Восстановлен генератор списка
             sources =
 
         if not sources:
