@@ -2,6 +2,7 @@ import base64
 import json
 import urllib.parse
 import ipaddress
+import os
 import re
 import html
 from typing import List
@@ -13,6 +14,7 @@ from core.settings import CONFIG
 class LinkParser:
     @staticmethod
     def decode_base64(s: str) -> str:
+        """Безопасное декодирование Base64 с защитой от кириллицы"""
         try:
             s = s.strip().replace('-', '+').replace('_', '/')
             s = re.sub(r'\s+', '', s)
@@ -24,10 +26,9 @@ class LinkParser:
 
     @staticmethod
     def is_valid_host(host: str) -> bool:
-        if not host: 
-            return False
-        # ИСПРАВЛЕНО: Список локальных IP на месте
-        if host.lower() in: 
+        """Отсеиваем локальные IP"""
+        # ИСПРАВЛЕНО: Добавлен список запрещенных хостов
+        if host.lower() in ["localhost", "127.0.0.1", "0.0.0.0"]: 
             return False
         try:
             ip = ipaddress.ip_address(host)
@@ -38,7 +39,8 @@ class LinkParser:
     @staticmethod
     def parse_vless(line: str) -> ProxyNode | None:
         try:
-            line = html.unescape(line).replace("/?", "?")
+            line = html.unescape(line)
+            line = line.replace("/?", "?")
             u = urllib.parse.urlparse(line)
             q = urllib.parse.parse_qs(u.query)
             
@@ -50,17 +52,17 @@ class LinkParser:
                 server=host,
                 port=u.port,
                 uuid=u.username,
-                type=q.get('type',),
-                security=q.get('security',),
-                path=q.get('path',),
-                host=q.get('host',),
-                sni=q.get('sni',),
-                fp=q.get('fp',) or 'chrome',
-                pbk=q.get('pbk',),
-                sid=q.get('sid',),
-                flow=q.get('flow',),
-                service_name=q.get('serviceName',),
-                spx=q.get('spx',)
+                type=q.get('type', ['tcp'])[0],
+                security=q.get('security', ['none'])[0],
+                path=q.get('path', ['/'])[0],
+                host=q.get('host', [''])[0],
+                sni=q.get('sni', [''])[0],
+                fp=q.get('fp', ['chrome'])[0],
+                pbk=q.get('pbk', [''])[0],
+                sid=q.get('sid', [''])[0],
+                flow=q.get('flow', [''])[0],
+                service_name=q.get('serviceName', [''])[0],
+                spx=q.get('spx', [''])[0]
             )
             return ProxyNode(protocol="vless", config=conf, raw_uri=line)
         except Exception: return None
@@ -88,7 +90,7 @@ class LinkParser:
             )
             if conf.tls == "tls": conf.security = "tls"
             return ProxyNode(protocol="vmess", config=conf, raw_uri=line)
-        except Exception: return None
+        except: return None
 
     @staticmethod
     def parse_trojan(line: str) -> ProxyNode | None:
@@ -106,49 +108,49 @@ class LinkParser:
                 port=u.port,
                 password=u.username,
                 security="tls",
-                sni=q.get('sni',) or q.get('peer',),
-                type=q.get('type',),
-                path=q.get('path',),
-                host=q.get('host',)
+                sni=q.get('sni', [''])[0] or q.get('peer', [''])[0],
+                type=q.get('type', ['tcp'])[0],
+                path=q.get('path', ['/'])[0],
+                host=q.get('host', [''])[0]
             )
             return ProxyNode(protocol="trojan", config=conf, raw_uri=line)
-        except Exception: return None
+        except: return None
 
     @staticmethod
     def parse_ss(line: str) -> ProxyNode | None:
         try:
             if '@' not in line: return None
             part1, part2 = line.split('@', 1)
+            # Фикс для ss://
+            if part1.startswith("ss://"):
+                part1 = part1[5:]
+            
             user_info = LinkParser.decode_base64(part1).split(':')
             if len(user_info) != 2: return None
             
-            host_port = part2.split('#').split(':')
-            host = host_port
+            host_port = part2.split('#')[0].split(':')
+            host = host_port[0]
             if not host or not LinkParser.is_valid_host(host): return None
             if len(host_port) < 2: return None
 
             conf = ProxyConfig(
                 server=host,
-                port=int(host_port),
-                method=user_info,
-                password=user_info,
+                port=int(host_port[1]),
+                method=user_info[0],
+                password=user_info[1],
                 type="tcp"
             )
             return ProxyNode(protocol="ss", config=conf, raw_uri=line)
-        except Exception: return None
+        except: return None
 
-    async def fetch_and_parse(self) -> List:
-        nodes =[]
+    async def fetch_and_parse(self) -> List[ProxyNode]:
+        nodes = []
         seen = set()
-        sources =[]
         
+        sources = []
         if CONFIG.SUBSCRIPTION_SOURCES:
-            # ИСПРАВЛЕНО: Восстановлен генератор списка
-            sources =
-
-        if not sources:
-            logger.error("❌ Нет источников! Проверьте секрет SUBSCRIPTION_SOURCES.")
-            return[]
+            # ИСПРАВЛЕНО: корректное чтение источников
+            sources = [s.strip() for s in CONFIG.SUBSCRIPTION_SOURCES.splitlines() if s.strip()]
 
         logger.info(f"📥 Загрузка из {len(sources)} источников...")
 
@@ -177,5 +179,5 @@ class LinkParser:
                 except Exception as e:
                     logger.warning(f"Ошибка источника {url}: {e}")
         
-        logger.success(f"✅ Успешно распарсено: {len(nodes)} уникальных узлов")
+        logger.success(f"✅ Успешно распарсено: {len(nodes)} уникальных, валидных узлов")
         return nodes
