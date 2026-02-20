@@ -13,7 +13,7 @@ from loguru import logger
 from core.models import ProxyNode
 from core.settings import CONFIG
 
-# Потокобезопасный генератор портов для исключения коллизий при многопоточности
+# Потокобезопасный генератор портов
 _port_counter = 20000
 _port_lock = threading.Lock()
 
@@ -83,7 +83,6 @@ class SingBoxEngine:
             with open(config_path, "w") as f:
                 json.dump(self._generate_config(node, local_port), f)
             
-            # Запускаем в новой сессии (os.setsid), чтобы потом убить всё дерево процессов
             proc = subprocess.Popen(
                 ["sing-box", "run", "-c", config_path],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -114,16 +113,17 @@ class SingBoxEngine:
                         total_bytes += len(chunk)
                     
                     duration = time.perf_counter() - t_start
-                    if duration < 0.3: duration = 0.3 # Защита от деления на около-ноль
+                    if duration < 0.3: duration = 0.3
                     
                     speed = (total_bytes * 8) / (duration * 1_000_000)
-                    if speed > 2500: speed = 999.0 # Защита от багов таймера
+                    if speed > 2500: speed = 999.0 
                     node.speed = round(speed, 1)
 
                 # 3. ГЕОЛОКАЦИЯ
                 if check_geo:
+                    geo_api = CONFIG.checking.get('geo_api', 'https://ipwho.is/')
                     try:
-                        async with session.get(CONFIG.checking['geo_api'], timeout=4) as geo:
+                        async with session.get(geo_api, timeout=4) as geo:
                             data = await geo.json()
                             if data.get('success'): node.country = data.get('country_code', 'UN')
                     except: pass
@@ -145,11 +145,16 @@ class SingBoxEngine:
                 except: pass
 
     async def verify_node(self, node: ProxyNode) -> bool:
-        return await self._run_test(node, CONFIG.checking['speedtest_url'], check_geo=True)
+        # Безопасное получение URL (fallback на Cloudflare 5MB)
+        test_url = CONFIG.checking.get('speedtest_url', "http://speed.cloudflare.com/__down?bytes=5000000")
+        return await self._run_test(node, test_url, check_geo=True)
 
     async def champion_run(self, node: ProxyNode) -> float:
         logger.info(f"🏆 Тест чемпиона: {node.config.server}")
-        success = await self._run_test(node, CONFIG.checking['champion_test_url'], check_geo=False)
+        # Безопасное получение URL (fallback на Cloudflare 25MB)
+        test_url = CONFIG.checking.get('champion_test_url', "http://speed.cloudflare.com/__down?bytes=25000000")
+        
+        success = await self._run_test(node, test_url, check_geo=False)
         if success:
             logger.info(f"🚀 Скорость чемпиона подтверждена: {node.speed} Mbps")
             return node.speed
@@ -158,12 +163,16 @@ class SingBoxEngine:
 class Inspector:
     def __init__(self):
         self.engine = SingBoxEngine()
-        self.sem = asyncio.Semaphore(CONFIG.system['threads'])
+        # Безопасное получение кол-ва потоков
+        threads = CONFIG.system.get('threads', 15)
+        self.sem = asyncio.Semaphore(threads)
 
     async def check_pipeline(self, node: ProxyNode) -> Optional[ProxyNode]:
         async with self.sem:
             is_alive = await self.engine.verify_node(node)
-            if is_alive and node.speed >= CONFIG.checking['min_speed']:
+            min_speed = CONFIG.checking.get('min_speed', 2.0)
+            
+            if is_alive and node.speed >= min_speed:
                 logger.info(f"✅ Alive: {node.country} | {node.latency}ms | {node.speed} Mbps")
                 return node
             return None
