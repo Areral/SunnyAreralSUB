@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import Optional, Literal
 
 class ProxyConfig(BaseModel):
@@ -7,26 +7,26 @@ class ProxyConfig(BaseModel):
     port: int = Field(ge=1, le=65535)
     
     # Common fields
-    uuid: Optional[str] = None
-    password: Optional[str] = None
+    uuid: Optional = None
+    password: Optional = None
     
-    # Transport
-    type: Literal["tcp", "ws", "grpc"] = "tcp"
+    # Transport (Добавлены xhttp и httpupgrade)
+    type: Literal = "tcp"
     path: str = "/"
-    host: Optional[str] = None
-    service_name: Optional[str] = None
+    host: Optional = None
+    service_name: Optional = None
     
     # Security
-    security: Literal["none", "tls", "reality", "auto"] = "none"
-    sni: Optional[str] = None
+    security: Literal = "none"
+    sni: Optional = None
     fp: str = "chrome"
-    pbk: Optional[str] = None # Reality public key
-    sid: Optional[str] = None # Reality short id
-    flow: Optional[str] = None # VLESS Vision flow
+    pbk: Optional = None
+    sid: Optional = None
+    flow: Optional = None
 
 class ProxyNode(BaseModel):
     """Объект прокси в системе"""
-    protocol: Literal["vless", "vmess", "trojan", "ss", "hysteria2"]
+    protocol: Literal
     config: ProxyConfig
     raw_uri: str
     
@@ -39,5 +39,4 @@ class ProxyNode(BaseModel):
 
     @property
     def unique_id(self) -> str:
-        """Уникальный отпечаток для дедупликации"""
         return f"{self.protocol}://{self.config.server}:{self.config.port}"
