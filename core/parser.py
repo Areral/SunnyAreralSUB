@@ -146,6 +146,34 @@ class LinkParser:
             return ProxyNode(protocol="ss", config=conf, raw_uri=line)
         except Exception: return None
 
+    @staticmethod
+    def parse_hy2(line: str) -> ProxyNode | None:
+        """Парсер для Hysteria2"""
+        try:
+            line = html.unescape(line).strip()
+            # Очищаем префиксы (поддерживаем hy2:// и hysteria2://)
+            if line.startswith("hysteria2://"):
+                line = "hy2://" + line[12:]
+                
+            u = urllib.parse.urlparse(line)
+            q = urllib.parse.parse_qs(u.query)
+            
+            host = u.hostname
+            if not host or not LinkParser.is_valid_host(host): return None
+            if not u.port: return None
+
+            conf = ProxyConfig(
+                server=host,
+                port=u.port,
+                password=u.username or "",
+                sni=q.get('sni', [''])[0] or q.get('peer', [''])[0],
+                insecure=(q.get('insecure', ['0'])[0] in ['1', 'true']),
+                obfs=q.get('obfs', [''])[0],
+                obfs_password=q.get('obfs-password', [''])[0]
+            )
+            return ProxyNode(protocol="hysteria2", config=conf, raw_uri=line)
+        except Exception: return None
+
     async def fetch_and_parse(self) -> List[ProxyNode]:
         nodes = []
         seen = set()
@@ -174,6 +202,7 @@ class LinkParser:
                             elif line.startswith("vmess://"): node = self.parse_vmess(line)
                             elif line.startswith("trojan://"): node = self.parse_trojan(line)
                             elif line.startswith("ss://"): node = self.parse_ss(line)
+                            elif line.startswith("hy2://") or line.startswith("hysteria2://"): node = self.parse_hy2(line)
                             
                             if node and node.unique_id not in seen:
                                 nodes.append(node)
