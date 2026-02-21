@@ -30,13 +30,21 @@ async def main():
 
     # 3. CHAMPION TEST
     if alive_nodes:
+        # Сортируем по скорости (от большей к меньшей)
         alive_nodes.sort(key=lambda x: x.speed, reverse=True)
-        champion = alive_nodes
+        
+        # БЕРЕМ ПЕРВЫЙ ЭЛЕМЕНТ (ОШИБКА БЫЛА ТУТ)
+        champion = alive_nodes[0]
         
         logger.info(f"🏆 Финал: тестируем чемпиона {champion.config.server}...")
+        
+        # Запускаем тяжелый тест
         new_speed = await inspector.champion_run(champion)
+        
+        # Если тест прошел успешно, обновляем скорость
         if new_speed > 0:
             champion.speed = new_speed
+            # Пересортировываем, вдруг чемпион сменился (маловероятно, но корректно)
             alive_nodes.sort(key=lambda x: x.speed, reverse=True)
 
     # 4. EXPORT
