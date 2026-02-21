@@ -4,22 +4,23 @@ from typing import Optional, Literal
 class ProxyConfig(BaseModel):
     server: str
     port: int = Field(ge=1, le=65535)
-    uuid: Optional[str] = None
-    password: Optional[str] = None
-    type: Literal["tcp", "ws", "grpc", "xhttp", "httpupgrade"] = "tcp"
+    uuid: Optional = None
+    password: Optional = None
+    method: Optional = None
+    type: Literal = "tcp"
     path: str = "/"
-    host: Optional[str] = None
-    service_name: Optional[str] = None
-    security: Literal["none", "tls", "reality", "auto"] = "none"
-    sni: Optional[str] = None
+    host: Optional = None
+    service_name: Optional = None
+    security: Literal = "none"
+    sni: Optional = None
     fp: str = "chrome"
-    pbk: Optional[str] = None
-    sid: Optional[str] = None
-    flow: Optional[str] = None
-    spx: Optional[str] = None
+    pbk: Optional = None
+    sid: Optional = None
+    flow: Optional = None
+    spx: Optional = None
 
 class ProxyNode(BaseModel):
-    protocol: Literal["vless", "vmess", "trojan", "ss", "hysteria2"]
+    protocol: Literal
     config: ProxyConfig
     raw_uri: str
     country: str = "UN"
