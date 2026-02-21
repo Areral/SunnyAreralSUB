@@ -18,9 +18,15 @@ class ProxyConfig(BaseModel):
     sid: Optional[str] = None
     flow: Optional[str] = None
     spx: Optional[str] = None
+    
+    # Новые поля для Hysteria2
+    insecure: bool = False
+    obfs: Optional[str] = None
+    obfs_password: Optional[str] = None
 
 class ProxyNode(BaseModel):
-    protocol: Literal["vless", "vmess", "trojan", "ss"]
+    # Добавили hysteria2 в список протоколов
+    protocol: Literal["vless", "vmess", "trojan", "ss", "hysteria2"]
     config: ProxyConfig
     raw_uri: str
     country: str = "UN"
