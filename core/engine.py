@@ -14,23 +14,21 @@ from core.models import ProxyNode
 from core.settings import CONFIG
 
 class BatchEngine:
-    """
-    Движок пакетной проверки.
-    Запускает один экземпляр Sing-box для N прокси одновременно.
-    Решает проблему 'Process Hell'.
-    """
-    
     BASE_PORT = 10000
 
-    # Пул API для обхода Rate Limits. Формат: (URL, Ключ в JSON для кода страны)
-    GEO_APIS =
+    # Пул API для ротации
+    GEO_APIS = [
+        ("https://ipwho.is/", "country_code"),
+        ("http://ip-api.com/json/", "countryCode"),
+        ("https://api.country.is/", "country"),
+        ("https://ipinfo.io/json", "country") 
+    ]
 
     @staticmethod
-    def _generate_batch_config(nodes: List) -> dict:
-        """Генерирует единый JSON для пачки прокси"""
+    def _generate_batch_config(nodes: List[ProxyNode]) -> dict:
         inbounds = []
         outbounds = []
-        rules =[]
+        rules = []
         
         for i, node in enumerate(nodes):
             local_port = BatchEngine.BASE_PORT + i
@@ -47,7 +45,7 @@ class BatchEngine:
             outbounds.append(outbound)
             
             rules.append({
-                "inbound":,
+                "inbound": [f"in-{i}"],
                 "outbound": tag
             })
 
@@ -56,7 +54,9 @@ class BatchEngine:
         return {
             "log": {"level": "panic", "output": "discard"},
             "dns": {
-                "servers":,
+                "servers": [
+                    {"tag": "remote", "address": "1.1.1.1", "detour": "direct"}
+                ],
                 "strategy": "ipv4_only"
             },
             "inbounds": inbounds,
@@ -69,10 +69,10 @@ class BatchEngine:
 
     @staticmethod
     def _node_to_outbound(node: ProxyNode, tag: str) -> dict:
-        """Конвертер модели ProxyNode в конфиг Sing-box"""
         c = node.config
         base = {"tag": tag, "server": c.server, "server_port": c.port}
         
+        # Protocol specifics
         if node.protocol == "vless":
             base.update({"type": "vless", "uuid": c.uuid, "flow": c.flow or "", "packet_encoding": "xudp"})
         elif node.protocol == "vmess":
@@ -82,31 +82,33 @@ class BatchEngine:
         elif node.protocol == "ss":
             base.update({"type": "shadowsocks", "method": c.method, "password": c.password})
             
+        # Transport
         if c.type == "ws":
-            base = {"type": "ws", "path": c.path, "headers": {"Host": c.host}}
+            base["transport"] = {"type": "ws", "path": c.path, "headers": {"Host": c.host}}
         elif c.type == "grpc":
-            base = {"type": "grpc", "service_name": c.service_name}
-        elif c.type in:
-            base = {"type": "httpupgrade", "path": c.path or "/", "host": c.host or ""}
+            base["transport"] = {"type": "grpc", "service_name": c.service_name}
+        elif c.type in ["xhttp", "httpupgrade"]:
+            base["transport"] = {"type": "httpupgrade", "path": c.path or "/", "host": c.host or ""}
             
-        if c.security in:
+        # TLS / Reality
+        if c.security in ["tls", "reality", "auto"]:
             tls = {
                 "enabled": True, 
                 "server_name": c.sni or c.host or c.server,
                 "utls": {"enabled": True, "fingerprint": c.fp or "chrome"}
             }
             if c.security == "reality":
-                tls = {"enabled": True, "public_key": c.pbk, "short_id": c.sid or ""}
-                if c.spx and c.spx != "/": tls = c.spx
-            base = tls
+                tls["reality"] = {"enabled": True, "public_key": c.pbk, "short_id": c.sid or ""}
+                if c.spx and c.spx != "/": 
+                    tls["reality"]["spider_x"] = c.spx
+            base["tls"] = tls
             
         return base
 
-    async def check_batch(self, nodes: List, is_champion: bool = False) -> List:
-        """Запускает проверку пачки"""
+    async def check_batch(self, nodes: List[ProxyNode], is_champion: bool = False) -> List[ProxyNode]:
         if not nodes: return []
         
-        alive_nodes =[]
+        alive_nodes = []
         config_path = "data/batch_config.json"
         os.makedirs("data", exist_ok=True)
         
@@ -115,23 +117,24 @@ class BatchEngine:
             with open(config_path, "w") as f:
                 json.dump(self._generate_batch_config(nodes), f)
             
-            proc = subprocess.Popen(,
+            proc = subprocess.Popen(
+                ["sing-box", "run", "-c", config_path],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 preexec_fn=os.setsid
             )
-            await asyncio.sleep(2.5) 
+            await asyncio.sleep(2.5)
             
             if proc.poll() is not None:
                 logger.error("Sing-box batch process died immediately!")
                 return []
 
-            tasks =[]
+            tasks = []
             for i, node in enumerate(nodes):
                 port = self.BASE_PORT + i
                 tasks.append(self._http_check(node, port, is_champion))
             
             results = await asyncio.gather(*tasks)
-            alive_nodes =
+            alive_nodes = [n for n in results if n is not None]
             
         except Exception as e:
             logger.error(f"Batch error: {e}")
@@ -147,15 +150,14 @@ class BatchEngine:
             
         return alive_nodes
 
-    async def _http_check(self, node: ProxyNode, port: int, is_champion: bool) -> Optional:
-        """Индивидуальная проверка через локальный порт"""
+    async def _http_check(self, node: ProxyNode, port: int, is_champion: bool) -> Optional[ProxyNode]:
         connector = ProxyConnector.from_url(f"socks5://127.0.0.1:{port}")
         timeout = aiohttp.ClientTimeout(total=CONFIG.system.get('http_timeout', 25))
         headers = {"User-Agent": CONFIG.system.get('user_agent', 'Mozilla/5.0')}
         
         try:
             async with aiohttp.ClientSession(connector=connector, timeout=timeout, headers=headers) as session:
-                # 1. Latency (Real Request)
+                # 1. Latency
                 t0 = time.perf_counter()
                 async with session.get("http://www.gstatic.com/generate_204", allow_redirects=False) as resp:
                     if resp.status != 204: raise Exception(f"Status {resp.status}")
@@ -194,7 +196,6 @@ class BatchEngine:
                 except Exception:
                     pass
 
-                # Финальный вердикт
                 if node.speed >= CONFIG.checking.get('min_speed', 2.0):
                     return node
                     
@@ -203,20 +204,18 @@ class BatchEngine:
         return None
 
 class Inspector:
-    """Интерфейс для main.py"""
     def __init__(self):
         self.batch_engine = BatchEngine()
 
-    async def process_all(self, nodes: List) -> List:
-        """Обрабатывает все узлы пакетами"""
-        alive_total =[]
+    async def process_all(self, nodes: List[ProxyNode]) -> List[ProxyNode]:
+        alive_total = []
         batch_size = getattr(CONFIG, 'BATCH_SIZE', 50)
         total = len(nodes)
         
         logger.info(f"🚀 Запуск проверки: {total} узлов, размер пакета: {batch_size}")
         
         for i in range(0, total, batch_size):
-            batch = nodes
+            batch = nodes[i : i + batch_size]
             logger.info(f"📦 Пакет {i // batch_size + 1}: проверка {len(batch)} узлов...")
             
             results = await self.batch_engine.check_batch(batch)
@@ -227,8 +226,7 @@ class Inspector:
         return alive_total
     
     async def champion_run(self, node: ProxyNode) -> float:
-        """Отдельный тест для чемпиона с тяжелым файлом"""
-        results = await self.batch_engine.check_batch(, is_champion=True)
+        results = await self.batch_engine.check_batch([node], is_champion=True)
         if results:
-            return results.speed
+            return results[0].speed
         return 0.0
