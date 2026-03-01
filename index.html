@@ -17,7 +17,7 @@
     --bg-card: rgba(24, 24, 28, 0.85);
     --bg-hover: rgba(40, 35, 45, 0.9);
     
-    /* Touhou Accents (Hakurei Red, Yukari Purple, Master Spark Orange) */
+    /* Touhou Accents (Hakurei Red, Yukari Purple, Sakura Pink) */
     --accent: #f97316; 
     --accent-glow: rgba(249, 115, 22, 0.4);
     --accent-dim: rgba(249, 115, 22, 0.15);
@@ -48,7 +48,6 @@ body {
     color: var(--text-main);
     min-height: 100vh;
     display: flex; justify-content: center;
-    /* Subtle magical geometry + Cyberpunk grid */
     background-image: 
         radial-gradient(circle at 15% 30%, rgba(225, 29, 72, 0.05) 0%, transparent 50%),
         radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 60%),
@@ -60,6 +59,7 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     word-break: break-word;
+    scroll-behavior: smooth;
 }
 
 .container { width: 100%; max-width: 1150px; z-index: 10; display: flex; flex-direction: column; gap: clamp(24px, 5vw, 40px); }
@@ -111,7 +111,7 @@ h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; }
 .btn-secondary:hover { background: var(--bg-hover); border-color: var(--touhou-purple); color: #fff; }
 
 /* HERO */
-.hero { text-align: center; padding: 10px 0 20px 0; display: flex; flex-direction: column; align-items: center; }
+.hero { text-align: center; padding: 20px 0 30px 0; display: flex; flex-direction: column; align-items: center; }
 .status-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2);
@@ -123,22 +123,63 @@ h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; }
 .status-badge .dot { width: 8px; height: 8px; background: var(--touhou-purple); border-radius: 50%; box-shadow: 0 0 10px var(--touhou-purple); animation: pulse 2s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-.hero h1 { font-size: clamp(2rem, 8vw, 4.5rem); margin-bottom: 12px; line-height: 1.1; }
+.hero h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin-bottom: 20px; line-height: 1.1; letter-spacing: -2px; }
 .hero h1 span { color: var(--touhou-red); display: inline-block; }
 .hero h1 span:hover { animation: glitch 0.2s linear infinite; cursor: crosshair; }
-.hero p { color: var(--text-dim); font-size: clamp(0.9rem, 4vw, 1.15rem); max-width: 650px; margin: 0 auto 30px auto; line-height: 1.5; }
+.hero p { 
+    color: var(--text-dim); 
+    font-size: clamp(1rem, 4vw, 1.2rem); 
+    max-width: 750px; 
+    margin: 0 auto 35px auto; 
+    line-height: 1.6;
+    text-align: center;
+}
 
 /* GRID LAYOUT */
 .grid-layout { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 @media (min-width: 950px) { .grid-layout { grid-template-columns: 340px 1fr; } }
 
-/* GLASS CARDS */
+/* GLASS CARDS & SECTIONS */
 .glass-card { 
     background: var(--bg-card); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border); border-radius: 20px; padding: clamp(16px, 4vw, 32px);
+    border: 1px solid var(--border); border-radius: 20px; padding: clamp(20px, 5vw, 40px);
     box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     width: 100%;
     overflow: hidden;
+}
+
+.content-section {
+    margin-top: 20px;
+    scroll-margin-top: 40px;
+}
+
+.content-section h2 {
+    font-size: 1.8rem; color: #fff; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+}
+
+.content-section h2 i { color: var(--touhou-purple); }
+
+.text-block {
+    font-size: 1rem; color: var(--text-dim); line-height: 1.7;
+}
+
+.text-block p { margin-bottom: 16px; }
+.text-block p:last-child { margin-bottom: 0; }
+.text-block b, .text-block strong { color: var(--text-main); }
+.text-block i { color: var(--touhou-sakura); }
+
+.text-block ul, .text-block ol { padding-left: 20px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.text-block li::marker { color: var(--touhou-purple); font-weight: bold; }
+
+.text-block blockquote { 
+    border-left: 3px solid var(--touhou-red); 
+    padding-left: 16px; 
+    font-style: italic; 
+    background: rgba(225, 29, 72, 0.05); 
+    border-radius: 0 8px 8px 0; 
+    padding: 16px; 
+    margin-bottom: 16px;
+    color: var(--text-main);
 }
 
 /* STATS & SYS LOG */
@@ -213,27 +254,20 @@ h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; }
 .step-item b { color: #fff; }
 .step-item code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 6px; font-size: 0.85rem; color: var(--cyber-blue); word-break: break-all; border: 1px solid var(--border); }
 
-/* ACCORDION FOR FIXES AND KNOWLEDGE BASE */
-details { 
-    background: rgba(0,0,0,0.3); border: 1px solid var(--border); 
-    border-radius: 12px; margin-top: 12px; transition: var(--trans); 
-    overflow: hidden;
+/* TABLES */
+.cyber-table {
+    width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px;
+    font-size: 0.9rem; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
-details[open] { background: var(--bg-surface); border-color: var(--border-light); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-summary { 
-    padding: 16px; cursor: pointer; font-weight: 700; font-size: 0.95rem; 
-    color: var(--text-main); outline: none; list-style: none; display: flex; 
-    align-items: center; justify-content: space-between; user-select: none; 
+.cyber-table th, .cyber-table td {
+    padding: 16px; text-align: left; border: 1px solid var(--border); line-height: 1.5;
 }
-summary::-webkit-details-marker { display: none; }
-summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; color: var(--touhou-purple); transition: transform 0.3s ease; }
-details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sakura); }
-.details-content { padding: 0 16px 16px 16px; font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
-.details-content p { margin-bottom: 12px; }
-.details-content p:last-child { margin-bottom: 0; }
-.details-content ul, .details-content ol { padding-left: 20px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
-.details-content li::marker { color: var(--touhou-purple); font-weight: bold; }
-.details-content blockquote { border-left: 3px solid var(--touhou-red); padding-left: 12px; font-style: italic; background: rgba(225, 29, 72, 0.05); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 12px;}
+.cyber-table th {
+    background: rgba(139, 92, 246, 0.15); color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+}
+.cyber-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.cyber-table td b { color: #fff; }
 
 /* SUBSCRIPTION CARDS */
 .sub-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -324,33 +358,56 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
 .footer a { color: var(--text-dim); text-decoration: none; transition: 0.2s; border-bottom: 1px dashed var(--border); padding-bottom: 2px;}
 .footer a:hover { color: var(--touhou-sakura); border-color: var(--touhou-sakura); }
 
+.disclaimer-block {
+    margin-top: 40px; padding: 24px; border: 1px solid rgba(225, 29, 72, 0.3); border-radius: 20px;
+    background: rgba(225, 29, 72, 0.05); font-size: 0.85rem; color: var(--text-dim); text-align: justify; line-height: 1.6;
+}
+.disclaimer-block b { color: var(--touhou-red); font-size: 1rem; display: block; margin-bottom: 10px; text-align: center; }
+
+/* ACCORDION (For minor stuff) */
+details { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; margin-top: 16px; transition: var(--trans); }
+details[open] { background: var(--bg-surface); border-color: var(--border-light); }
+summary { padding: 14px 16px; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text-main); outline: none; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; color: var(--accent); transition: transform 0.3s ease; }
+details[open] summary::after { transform: rotate(180deg); }
+.details-content { padding: 0 16px 16px 16px; font-size: 0.85rem; color: var(--text-dim); }
+.details-content ol { padding-left: 20px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+
     </style>
 </head>
 <body>
 
     <div class="container">
+        
+        <!-- HERO SECTION -->
         <div class="hero">
             <div class="status-badge"><div class="dot"></div> Hakurei Barrier: Active</div>
             <h1>SunnyAreral <span>Network</span></h1>
-            <p>Продвинутая система обхода блокировок (Neo-Gensokyo Routing Protocol). Мы собираем, тестируем и фильтруем лучшие спелл-карты, чтобы вы всегда оставались на связи.</p>
+            <p>
+                Продвинутая система обхода блокировок (Neo-Gensokyo Routing Protocol). 
+                Мы собираем, тестируем и фильтруем лучшие спелл-карты, 
+                чтобы вы всегда оставались на связи.
+            </p>
             <button class="btn-primary" onclick="openModal('rules-modal')">
                 <i class="fa-solid fa-key"></i> Получить доступ
             </button>
         </div>
 
+        <!-- DASHBOARD & QUICK INFO -->
         <div class="grid-layout">
             <div class="glass-card dashboard">
                 <div class="stat-panel">
-                    <div class="stat-title"><i class="fa-solid fa-gauge-high"></i> Danmaku Velocity</div>
-                    <div class="stat-value text-touhou">256<span>Mbps</span></div>
+                    <div class="stat-title"><i class="fa-solid fa-gauge-high"></i> Max Speed</div>
+                    <div class="stat-value text-touhou">512<span>Mbps</span></div>
                 </div>
                 <div class="stat-panel">
-                    <div class="stat-title"><i class="fa-solid fa-server"></i> Spirit Link Nodes</div>
-                    <div class="stat-value">409<span>UP</span></div>
+                    <div class="stat-title"><i class="fa-solid fa-server"></i> Active Nodes</div>
+                    <div class="stat-value">423<span>UP</span></div>
                 </div>
                 
                 <div class="sys-log">
-                    <div class="line">> last_sync: <span>01.03 20:20 MSK</span></div>
+                    <div class="line">> last_sync: <span>01.03 22:15 MSK</span></div>
                     <div class="line">> protocols: <span>VLESS, VMESS, TROJAN, SS, HY2</span></div>
                     <div class="line">> obfuscation: <span class="magic">REALITY_ACTIVE</span></div>
                 </div>
@@ -362,20 +419,18 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
 
             <div class="glass-card">
                 <h2 style="margin-bottom: 20px; font-size: 1.3rem;">Руководство по настройке</h2>
-                <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px;">Выберите вашу платформу, установите рекомендованный клиент и следуйте инструкциям для активации спелл-карты.</p>
+                <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px;">Выберите вашу платформу, установите рекомендованный клиент и следуйте инструкциям для активации подписки.</p>
                 
                 <div class="tabs">
                     <button class="tab-btn" id="tab-windows" onclick="switchPlatform('windows')"><i class="fa-brands fa-windows"></i> Windows</button>
                     <button class="tab-btn" id="tab-android" onclick="switchPlatform('android')"><i class="fa-brands fa-android"></i> Android</button>
-                    <button class="tab-btn" id="tab-androidtv" onclick="switchPlatform('androidtv')"><i class="fa-solid fa-tv"></i> TV</button>
-                    <button class="tab-btn" id="tab-ios" onclick="switchPlatform('ios')"><i class="fa-brands fa-apple"></i> iOS</button>
-                    <button class="tab-btn" id="tab-mac" onclick="switchPlatform('mac')"><i class="fa-solid fa-laptop"></i> Mac</button>
+                    <button class="tab-btn" id="tab-ios" onclick="switchPlatform('ios')"><i class="fa-brands fa-apple"></i> iOS/Mac</button>
                     <button class="tab-btn" id="tab-linux" onclick="switchPlatform('linux')"><i class="fa-brands fa-linux"></i> Linux</button>
                 </div>
 
                 <div class="instruction-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h3 style="font-size: 1rem;">1. Выбор клиента (Artifact)</h3>
+                        <h3 style="font-size: 1rem;">1. Выбор клиента</h3>
                     </div>
                     
                     <div class="app-grid" id="app-grid"></div>
@@ -384,69 +439,128 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
                         <span><i class="fa-solid fa-download" style="margin-right: 8px; color: var(--touhou-sakura)"></i> Скачать <b id="app-name-display">App</b></span> 
                     </a>
 
-                    <h3 style="font-size: 1rem; margin-top: 30px;">2. Импорт и запуск (Invocation)</h3>
+                    <h3 style="font-size: 1rem; margin-top: 30px;">2. Импорт и запуск</h3>
                     <div id="instruction-text"></div>
                 </div>
             </div>
         </div>
 
-        <!-- THE GRIMOIRE OF KNOWLEDGE (NEW SECTION) -->
-        <div class="glass-card" style="margin-top: 10px;">
-            <h2 style="font-size: 1.4rem; margin-bottom: 15px; color: #fff;"><i class="fa-solid fa-book-journal-whills" style="color: var(--touhou-purple);"></i> Гримуар знаний (Архив)</h2>
-            <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">Важная информация о сетевой безопасности, типах блокировок (ТСПУ) и приватности.</p>
+        <!-- FULL PAGE SCROLL SECTIONS -->
+        
+        <!-- О ПРОЕКТЕ -->
+        <section class="glass-card content-section">
+            <h2><i class="fa-solid fa-book-open"></i> Описание проекта</h2>
+            <div class="text-block">
+                <p><b>SunnyAreral Network</b> — это автоматически обновляемая коллекция публичных VPN-конфигураций (<code>V2Ray</code> / <code>VLESS</code> / <code>Hysteria2</code> / <code>Trojan</code> / <code>VMess</code> / <code>Shadowsocks</code>) для быстрого обхода блокировок (ТСПУ).</p>
+                <p>Каждый конфиг — это TXT-подписка, которую можно импортировать в любой современный клиент (v2rayNG, Throne, Karing, NekoBox и другие).</p>
+                <p><i>Обычные протоколы (OpenVPN, WireGuard) в наших реалиях давно не работают, вне зависимости от того, платная у вас подписка или нет.</i> Поэтому критически важно использовать конфигурации, проверенные для работы именно в условиях жестких ограничений, чтобы пробивать барьеры цензуры.</p>
+                <p>Наша система каждые 4-6 часов прогоняет тысячи открытых источников через автоматические тесты (пинги, задержка, скачивание файлов 50MB) на серверах. Медленные и мертвые узлы отсеиваются, а вы получаете очищенный гримуар живых соединений.</p>
+            </div>
+        </section>
 
-            <details>
-                <summary><i class="fa-solid fa-yin-yang"></i> В чем разница между Белым (БС) и Черным (ЧС) списками?</summary>
-                <div class="details-content">
-                    <p><b>ЧЕРНЫЕ СПИСКИ (ЧС) - Стандартный интернет:</b><br>
-                    Принцип «разрешено все, что не запрещено». У вас работает обычный интернет (кабельный или мобильный без жестких ограничений), открываются мировые сайты, но заблокированы определенные ресурсы (YouTube, Instagram, Discord).<br>
-                    <i>➔ Используйте подписку «Обход ЧС» (Danmaku Speed). Это быстрые серверы, рассчитанные на стриминг и тяжелый трафик.</i></p>
+        <!-- КАК ПОЛЬЗОВАТЬСЯ -->
+        <section class="glass-card content-section">
+            <h2><i class="fa-solid fa-graduation-cap"></i> Как пользоваться?</h2>
+            <div class="text-block">
+                <p>Используя кнопку <b>«Получить доступ»</b> выше, выберите подходящую для вас подписку (БС или ЧС), скопируйте ссылку и добавьте её в клиент. Обычно это делается с помощью кнопки «Добавить из буфера обмена».</p>
+                <blockquote>Важно: копировать и добавлять в клиент нужно саму ссылку на подписку. Вручную копировать её содержимое (текст) — неправильно.</blockquote>
+                <p>После загрузки подписки <b>обязательно включите её автообновление</b>. Профили быстро теряют актуальность. Работающие сегодня серверы могут перестать отвечать завтра. В настройках подписки клиента установите интервал обновления раз в 4-6 часов.</p>
+                
+                <p style="margin-top: 20px;"><b>Как понять, к какому серверу подключаться?</b></p>
+                <p>Главный инструмент — это проверка «задержки» до сервера (Latency Test / URL Test) сразу для всей подписки. Не путайте это с обычным TCP/ICMP-пингом, который не отражает реальную доступность сервера через барьеры.</p>
+                <p>После завершения проверки отсортируйте список по задержке от меньшего к большему. Подключитесь к самому быстрому (с зеленым пингом) серверу — и вы получите доступ к свободному интернету.</p>
+                
+                <p><i>Замечание: в подписке «Обход БС» находятся серверы, мимикрирующие под российские сервисы. Подключаться к ним для скачивания торрентов или просмотра тяжелого видео не стоит — используйте их только во время жестких блэкаутов.</i></p>
+            </div>
+        </section>
 
-                    <p style="margin-top: 15px;"><b>БЕЛЫЕ СПИСКИ (БС) - Максимальные ограничения:</b><br>
-                    Принцип «запрещено все, что не разрешено». Применяется во время жестких мобильных блокировок. Не работает ни Google, ни Telegram — открываются только сайты, утвержденные регулятором (Яндекс, Госуслуги, ВК, Сбербанк).<br>
-                    <i>➔ Используйте подписку «Обход БС» (Phantom Walk). Эти конфиги используют протокол <code>VLESS Reality</code> для мимикрии под разрешенные Российские сервисы, чтобы пробить барьер.</i></p>
-                </div>
-            </details>
+        <!-- БС vs ЧС -->
+        <section class="glass-card content-section">
+            <h2><i class="fa-solid fa-yin-yang"></i> В чем разница между Белыми (БС) и Черными (ЧС) списками?</h2>
+            <div class="text-block">
+                <p>Перед выбором подписки убедитесь, что ваш интернет в принципе работает. Откройте Яндекс, ВК или Госуслуги. Если они не грузятся — у вас нет сети физически, VPN не поможет.</p>
+                <p>Если часть сайтов работает, выбирайте маршрут:</p>
+                
+                <table class="cyber-table">
+                    <tr>
+                        <th>ЧЕРНЫЕ СПИСКИ (ЧС)</th>
+                        <th>БЕЛЫЕ СПИСКИ (БС)</th>
+                    </tr>
+                    <tr>
+                        <td><b>Принцип:</b> «Разрешено всё, что не запрещено».</td>
+                        <td><b>Принцип:</b> «Запрещено всё, что не разрешено».</td>
+                    </tr>
+                    <tr>
+                        <td><b>Тип сети:</b> Кабельный интернет или мобильный без жестких ограничений. Открывается Google, Telegram, App Store.</td>
+                        <td><b>Тип сети:</b> Жесткие мобильные блокировки. Ничего не работает, кроме одобренных сайтов (Яндекс, Сбербанк, ВК).</td>
+                    </tr>
+                    <tr>
+                        <td><b>Цель:</b> Смотреть YouTube в 4K, пользоваться Discord, Instagram, X (Twitter).</td>
+                        <td><b>Цель:</b> Пробить "глухой" барьер, чтобы отправить сообщение в WhatsApp/Telegram или прочитать почту. Не рассчитано на онлайн-игры.</td>
+                    </tr>
+                    <tr>
+                        <td><b>Протоколы:</b> Hysteria2, Shadowsocks, VLESS. Высокая скорость.</td>
+                        <td><b>Протоколы:</b> Только VLESS Reality. Трафик маскируется под разрешенные РКН сайты.</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
 
-            <details>
-                <summary><i class="fa-solid fa-eye"></i> Что видит провайдер, когда вы в сети?</summary>
-                <div class="details-content">
-                    <p>Существует миф, что "провайдер всё видит". На самом деле, благодаря повсеместному внедрению HTTPS, провайдер видит только 3 вещи:</p>
-                    <ul>
-                        <li>Конечный IP-адрес сайта.</li>
-                        <li>Название домена (через незашифрованный SNI).</li>
-                        <li>Объем зашифрованных пакетов.</li>
-                    </ul>
-                    <p><b>Что он НЕ видит:</b> Какие именно страницы вы посещаете, что пишете в поиске, какие видео смотрите. Расшифровать HTTPS-трафик практически невозможно без подмены сертификата на вашем устройстве.</p>
-                    <blockquote>Чтобы повысить приватность и скрыть от провайдера даже домены сайтов, настройте DNS-over-HTTPS (DoH) на вашем устройстве или в браузере.</blockquote>
-                </div>
-            </details>
+        <!-- ПРОВАЙДЕРЫ И DOH -->
+        <section class="glass-card content-section">
+            <h2><i class="fa-solid fa-eye"></i> Что видит провайдер и как стать "невидимым"?</h2>
+            <div class="text-block">
+                <p>Многие верят в миф, что "провайдер всё видит". На самом деле, благодаря повсеместному шифрованию HTTPS, при обычном серфинге провайдер видит только:</p>
+                <ul>
+                    <li>Конечный IP-адрес сайта.</li>
+                    <li>Название домена (через незашифрованный заголовок SNI).</li>
+                    <li>Объем передаваемого трафика.</li>
+                </ul>
+                <p>Какие видео вы смотрите на YouTube или какие мемы ищете в Google — <b>он не видит</b>. Расшифровать HTTPS-пакеты невозможно без подмены сертификата.</p>
 
-            <details>
-                <summary><i class="fa-solid fa-user-secret"></i> Шифрование DNS (DoH) и приватные браузеры</summary>
-                <div class="details-content">
-                    <p><b>Что такое DoH?</b><br>
-                    Обычный DNS отправляет запросы открытым текстом. DNS-over-HTTPS (DoH) шифрует их, не позволяя локальному провайдеру видеть, к какому домену вы обращаетесь. Настроить его можно в параметрах системы или браузера.</p>
-                    
-                    <p><b>Публичные серверы DoH:</b></p>
-                    <ul>
-                        <li><code>https://dns.quad9.net/dns-query</code> (Quad9 — Швейцария, приватность + блокировка малвари)</li>
-                        <li><code>https://dns.adguard-dns.com/dns-query</code> (AdGuard — Блокировка рекламы)</li>
-                        <li><code>https://dns.cloudflare.com/dns-query</code> (Cloudflare — Базовый)</li>
-                    </ul>
+                <p style="margin-top: 20px;"><b>Шифрование DNS (DoH)</b></p>
+                <p>Обычный DNS (например 1.1.1.1) отправляет ваши запросы открытым текстом. DNS-over-HTTPS (DoH) зашифровывает их, скрывая от локального провайдера названия сайтов, к которым вы обращаетесь.</p>
+                <p>Популярные публичные DoH серверы:</p>
+                <ul>
+                    <li><code>https://dns.quad9.net/dns-query</code> (Quad9 — Швейцария, приватность + блокировка малвари)</li>
+                    <li><code>https://dns.adguard-dns.com/dns-query</code> (AdGuard — Блокировка рекламы)</li>
+                    <li><code>https://dns.cloudflare.com/dns-query</code> (Cloudflare — Базовый)</li>
+                </ul>
 
-                    <p style="margin-top: 15px;"><b>Выбор браузера (Уход от телеметрии):</b><br>
-                    Многие публичные браузеры собирают статистику. Для максимальной конфиденциальности рассмотрите Open-Source решения:</p>
-                    <ol>
-                        <li><b>Librewolf</b> — кастомизированный Firefox с вырезанной телеметрией и встроенным uBlock Origin. Отлично подходит из коробки.</li>
-                        <li><b>Ungoogled Chromium</b> — классический Chromium без привязок к сервисам Google.</li>
-                        <li><b>Mozilla Firefox</b> — самый лояльный к приватности среди массовых браузеров (обязательно установите uBlock Origin).</li>
-                    </ol>
-                </div>
-            </details>
+                <p style="margin-top: 20px;"><b>Приватные браузеры (Уход от телеметрии)</b></p>
+                <p>Для максимальной безопасности откажитесь от браузеров, собирающих телеметрию. Используйте Open-Source альтернативы:</p>
+                <ol>
+                    <li><b>Librewolf</b> — кастомизированный Firefox с вырезанной телеметрией и встроенным uBlock Origin.</li>
+                    <li><b>Ungoogled Chromium</b> — классический движок Chromium, но без сервисов и слежки Google.</li>
+                    <li><b>Cromite</b> — отличный браузер для Android с агрессивной блокировкой трекеров.</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- СОВЕТЫ -->
+        <section class="glass-card content-section">
+            <h2><i class="fa-solid fa-lightbulb"></i> Дополнительные советы</h2>
+            <div class="text-block">
+                <ul>
+                    <li><b>Включите Insecure:</b> В настройках вашего клиента (например, NekoBox) найдите опцию «Разрешить небезопасные / Allow Insecure» и включите её. Это увеличит количество доступных серверов, так как многие публичные узлы используют самоподписанные сертификаты.</li>
+                    <li><b>Пробуйте разные клиенты:</b> Если в v2rayN конфиги не заводятся, попробуйте Throne. У разных ядер (Xray, Sing-box) разная терпимость к старым протоколам.</li>
+                    <li><b>DNS не влияет на VPN:</b> Актуальная база формируется преимущественно из IP-адресов. Это исключает зависимость VPN-соединения от доступности вашего локального DNS.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ДИСКЛЕЙМЕР -->
+        <div class="disclaimer-block">
+            <b><i class="fa-solid fa-triangle-exclamation"></i> ДИСКЛЕЙМЕР И ОТКАЗ ОТ ОТВЕТСТВЕННОСТИ</b>
+            <p>Автор не является владельцем, разработчиком или поставщиком перечисленных VPN-конфигураций. Этот сайт — независимый автоматизированный парсер-информатор, собирающий данные из открытых публичных источников.</p>
+            <p>Проект не является рекламой VPN. Весь материал предназначен исключительно в информационных, образовательных и научных целях. Автор не побуждает, не поощряет и не оправдывает использование VPN для противоправных действий ни при каких обстоятельствах.</p>
+            <p>Используйте данные конфигурации только в законных целях: в частности, для обеспечения вашей личной безопасности в публичных сетях (Wi-Fi) и защищенного удаленного доступа.</p>
         </div>
 
-        <div class="footer">Created by <a href="https://t.me/SunnyAreral" target="_blank">SunnyAreral Team</a> • 2026<br><span style="font-size: 0.7rem; color: var(--border-light);">Powered by Neo-Gensokyo Routing Architecture</span></div>
+        <div class="footer">
+            Created by <a href="https://t.me/SunnyAreral" target="_blank">SunnyAreral Team</a> • 2026<br>
+            <span style="font-size: 0.7rem; color: var(--border-light); margin-top: 5px; display: inline-block;">Powered by Neo-Gensokyo Routing Architecture</span>
+        </div>
     </div>
 
     <!-- MODAL 1: RULES -->
@@ -499,7 +613,7 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
             </div>
             <div class="modal-body">
                 <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px;">
-                    Трафик отсортирован и прошел валидацию. Выберите нужную ссылку:
+                    Трафик отсортирован и прошел валидацию. Выберите нужную подписку:
                 </p>
 
                 <div class="sub-grid">
@@ -509,7 +623,7 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
                             <div class="sub-title"><i class="fa-solid fa-mask" style="color: #c4b5fd;"></i> Обход БС</div>
                             <div class="sub-badge badge-reality">Phantom Walk</div>
                         </div>
-                        <div class="sub-desc">Обход жестких белых списков. Трафик мимикрирует под легальные сайты (РКН). Максимальная маскировка и пробитие.</div>
+                        <div class="sub-desc">Для мобильных сетей с жесткими ограничениями. Трафик мимикрирует под легальные сайты.</div>
                         <div class="sub-tech">SPELLCARD: VLESS REALITY</div>
                     </div>
 
@@ -519,7 +633,7 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
                             <div class="sub-title"><i class="fa-solid fa-jet-fighter" style="color: #6ee7b7;"></i> Обход ЧС</div>
                             <div class="sub-badge badge-fast">Tengu Dash</div>
                         </div>
-                        <div class="sub-desc">Для стандартного интернета. Сырая мощность современных протоколов. Идеально для YouTube 4K.</div>
+                        <div class="sub-desc">Для стандартного интернета. Максимальная скорость для стриминга и тяжелого трафика.</div>
                         <div class="sub-tech">SPELLCARD: HYSTERIA2, SS, VMESS</div>
                     </div>
 
@@ -529,7 +643,7 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
                             <div class="sub-title"><i class="fa-solid fa-infinity" style="color: #fda4af;"></i> MIX База</div>
                             <div class="sub-badge badge-mix">Master Spark</div>
                         </div>
-                        <div class="sub-desc">Полный нефильтрованный гримуар всех живых узлов. Подойдет опытным пользователям с клиентом Throne / v2rayN.</div>
+                        <div class="sub-desc">Полный гримуар всех живых узлов. Идеально для ПК клиентов с автоматическим URL-тестом.</div>
                         <div class="sub-tech">SPELLCARD: ALL PROTOCOLS</div>
                     </div>
                 </div>
@@ -547,11 +661,11 @@ const APP_DATABASE = {
         name: "Throne", icon: "fa-solid fa-chess-rook", url: "https://github.com/throneproj/Throne/releases/latest",
         guide: `
             <div class="step-list">
-                <div class="step-item">Нажмите <b>«Получить доступ»</b> выше и скопируйте ссылку на спелл-карту (подписку).</div>
+                <div class="step-item">Нажмите <b>«Получить доступ»</b> выше и скопируйте ссылку на подписку.</div>
                 <div class="step-item">В клиенте нажмите на <b>«Профили»</b> -> <b>«Добавить профиль из буфера обмена»</b>.</div>
                 <div class="step-item">Выделите все профили (Ctrl+A), нажмите <b>«Профили»</b> -> <b>«Тест задержки (пинга)»</b>.</div>
                 <div class="step-item">Дождитесь надписи <i>«Тест задержек завершён!»</i> в логах снизу.</div>
-                <div class="step-item">Кликните по колонке <b>«Задержка (пинг)»</b> для сортировки.</div>
+                <div class="step-item">Кликните по колонке <b>«Задержка (пинг)»</b> для сортировки от меньшего к большему.</div>
                 <div class="step-item">Сверху установите галочку <b>«Режим TUN»</b> (важно для обхода DPI).</div>
                 <div class="step-item">Выберите сервер с лучшим пингом -> Правая кнопка мыши -> <b>«Запустить»</b>.</div>
             </div>
@@ -570,11 +684,35 @@ const APP_DATABASE = {
             </details>
         `
     },
+    "nekobox": {
+        name: "NekoBox", icon: "fa-solid fa-cat", url: "https://github.com/MatsuriDayo/nekoray/releases/latest",
+        guide: `
+            <div class="step-list">
+                <div class="step-item">Скопируйте ссылку на подписку.</div>
+                <div class="step-item">Перейдите в <b>«Настройки»</b> -> <b>«Группы»</b> -> <b>«Новая группа»</b>.</div>
+                <div class="step-item">Выберите тип <b>«Подписка»</b> и вставьте вашу ссылку. Нажмите Ок.</div>
+                <div class="step-item">Нажмите кнопку <b>«Обновить подписки»</b>.</div>
+                <div class="step-item">Включите галочку <b>«Режим TUN»</b> и запустите выбранный сервер.</div>
+            </div>
+        `
+    },
+    "v2rayn": {
+        name: "v2rayN", icon: "fa-solid fa-v", url: "https://github.com/2dust/v2rayN/releases/latest",
+        guide: `
+            <div class="step-list">
+                <div class="step-item">Скопируйте ссылку на конфиг.</div>
+                <div class="step-item">Перейдите в <b>«Подписки»</b> -> <b>«Настройки подписки»</b> -> <b>«Добавить»</b>.</div>
+                <div class="step-item">Вставьте ссылку в поле <code>Url</code>, сохраните.</div>
+                <div class="step-item">В главном меню нажмите <b>«Обновить подписку»</b>.</div>
+                <div class="step-item">Выделите сервер с хорошим пингом и нажмите <b>Enter</b> для подключения.</div>
+            </div>
+        `
+    },
     "v2rayng": {
         name: "v2rayNG", icon: "fa-solid fa-paper-plane", url: "https://github.com/2dust/v2rayNG/releases/latest",
         guide: `
             <div class="step-list">
-                <div class="step-item">Скопируйте ссылку на маршрут из раздела <b>«Получить доступ»</b>.</div>
+                <div class="step-item">Скопируйте ссылку на подписку.</div>
                 <div class="step-item">В приложении нажмите на <b>«+»</b> (справа сверху) -> <b>«Импорт из буфера обмена»</b>.</div>
                 <div class="step-item">Нажмите три точки -> <b>«Проверка профилей группы»</b>. Дождитесь окончания.</div>
                 <div class="step-item">Снова три точки -> <b>«Сортировка по результатам теста»</b>.</div>
@@ -601,16 +739,14 @@ const APP_DATABASE = {
             </details>
         `
     },
-    "androidtv": {
-        name: "v2rayNG (TV)", icon: "fa-solid fa-tv", url: "https://github.com/2dust/v2rayNG/releases/latest",
+    "v2raytun": {
+        name: "v2RayTun", icon: "fa-solid fa-rocket", url: "https://v2raytun.com/",
         guide: `
             <div class="step-list">
-                <div class="step-item">Зайдите в приложение <b>v2rayNG</b> на вашем телевизоре.</div>
-                <div class="step-item">Отправьте скопированную ссылку на телевизор (например, через Telegram "Избранное" на TV).</div>
-                <div class="step-item">Нажмите <b>«+»</b> -> <b>«Импорт из буфера обмена»</b> (или используйте ручной ввод URL).</div>
-                <div class="step-item">Нажмите три точки -> <b>«Проверка профилей группы»</b>.</div>
-                <div class="step-item">Там же выберите <b>«Сортировка по результатам теста»</b>.</div>
-                <div class="step-item">Выберите зеленый сервер и нажмите кнопку <b>▶️</b> для старта.</div>
+                <div class="step-item">Скопируйте ссылку на подписку.</div>
+                <div class="step-item">Откройте v2RayTun и перейдите в раздел управления серверами.</div>
+                <div class="step-item">Нажмите иконку <b>добавления</b> -> выберите <b>«Импорт из буфера обмена»</b>.</div>
+                <div class="step-item">Обновите подписку, выберите сервер с зеленым пингом и нажмите огромную кнопку старта.</div>
             </div>
         `
     },
@@ -643,11 +779,10 @@ const APP_DATABASE = {
                 <div class="step-item">Зажмите палец на названии подписки и выберите <b>«Latency Test»</b>.</div>
                 <div class="step-item">Выберите лучший узел и нажмите главную кнопку подключения.</div>
             </div>
-            <div class="mt-2 text-sm" style="color:var(--text-dim); font-style:italic;">* Рекомендуется для iOS: без сбора данных, поддерживает кастомные DNS-over-HTTPS.</div>
         `
     },
     "hiddify": {
-        name: "Hiddify", icon: "fa-brands fa-apple", url: "https://github.com/hiddify/hiddify-app/releases/latest",
+        name: "Hiddify", icon: "fa-solid fa-shield-halved", url: "https://github.com/hiddify/hiddify-app/releases/latest",
         guide: `
             <div class="step-list">
                 <div class="step-item">Скопируйте ссылку на подписку.</div>
@@ -668,12 +803,10 @@ const APP_DATABASE = {
 };
 
 const PLATFORMS = {
-    windows:['throne', 'hiddify'],
-    android:['v2rayng', 'hiddify'],
-    androidtv:['androidtv'],
-    ios:['streisand', 'v2box'],
-    linux:['throne', 'hiddify'],
-    mac:['hiddify', 'throne']
+    windows:['throne', 'nekobox', 'v2rayn', 'hiddify'],
+    android:['v2rayng', 'v2raytun', 'nekobox', 'hiddify'],
+    ios:['streisand', 'v2box', 'v2raytun', 'hiddify'],
+    linux:['throne', 'nekobox', 'hiddify']
 };
 
 let currentPlatform = 'windows';
@@ -681,10 +814,8 @@ let currentAppId = PLATFORMS['windows'][0];
 
 function init() {
     const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes("android") && (ua.includes("tv") || window.innerWidth > 1000)) currentPlatform = 'androidtv';
-    else if (ua.includes("android")) currentPlatform = 'android';
-    else if (ua.includes("iphone") || ua.includes("ipad")) currentPlatform = 'ios';
-    else if (ua.includes("macintosh") || ua.includes("mac os")) currentPlatform = 'mac';
+    if (ua.includes("android")) currentPlatform = 'android';
+    else if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("macintosh")) currentPlatform = 'ios';
     else if (ua.includes("linux")) currentPlatform = 'linux';
     else currentPlatform = 'windows';
     
