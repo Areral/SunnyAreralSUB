@@ -253,7 +253,7 @@ function copySub(path, name) {
     navigator.clipboard.writeText(fullUrl).then(() => {
         closeModal('configs-modal');
         const toast = document.getElementById('toast');
-        document.getElementById('toast-text').innerText = `Спелл-карта [${name}] скопирована!`;
+        document.getElementById('toast-text').innerText = `Подписка [${name}] скопирована!`;
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3500);
     });
