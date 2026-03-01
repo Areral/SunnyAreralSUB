@@ -1,0 +1,36 @@
+# ==========================================
+# SUNNY ARERAL | SYSTEM CONFIGURATION
+# ==========================================
+
+# = Управление парсером и дедубликацией =
+parser:
+  # Максимальное количество уникальных аккаунтов (UUID/паролей) на один физический сервер (IP:Port:SNI).
+  max_accounts_per_server: 5
+
+# = Настройки ядра и сетевых запросов =
+system:
+  threads: 25
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+
+# = Настройки HTTP/Speed тестов =
+checking:
+  connectivity_urls:
+    - "http://www.gstatic.com/generate_204"
+  speedtest_url: "https://speed.cloudflare.com/__down?bytes=5000000"
+  champion_test_url: "https://speed.cloudflare.com/__down?bytes=20000000"
+  min_speed: 1.0
+  max_latency: 5000
+
+# = Настройки генерации HTML =
+app:
+  public_url: "https://sunny-areral.vercel.app"
+  template_path: "config/template.html"
+  channel_tag: "@SunnyAreral"
+
+# = Базы данных РКН (ТСПУ) =
+whitelist:
+  domains_url: "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/source/config/whitelist-all.txt"
+  ips_url: "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/source/config/cidrwhitelist.txt"
+
+# = Размер батча для Sing-box =
+BATCH_SIZE: 100
