@@ -13,19 +13,6 @@ const APP_DATABASE = {
                 <div class="step-item">Сверху установите галочку <b>«Режим TUN»</b> (важно для обхода DPI).</div>
                 <div class="step-item">Выберите сервер с лучшим пингом -> Правая кнопка мыши -> <b>«Запустить»</b>.</div>
             </div>
-            <details>
-                <summary><i class="fa-solid fa-triangle-exclamation" style="color:var(--touhou-red)"></i> Ошибка MSVCP / VCRUNTIME на Windows</summary>
-                <div class="details-content">
-                    <p>Если программа Throne не запускается и требует DLL файлы, сделайте следующее:</p>
-                    <ol>
-                        <li>Нажмите <b>Win+R</b>, введите <code>control</code>.</li>
-                        <li>Откройте <b>«Программы и компоненты»</b>, удалите старые пакеты "Microsoft Visual C++".</li>
-                        <li>Скачайте официальный <a href="https://cf.comss.org/download/Visual-C-Runtimes-All-in-One-Dec-2025.zip" target="_blank" style="color:var(--cyber-blue)">пакет Visual C++ Runtimes</a>.</li>
-                        <li>Распакуйте архив и запустите <code>install_bat.all</code> <b>от имени администратора</b>.</li>
-                        <li>Дождитесь окончания установки и перезапустите Throne.</li>
-                    </ol>
-                </div>
-            </details>
         `
     },
     "nekobox": {
@@ -52,35 +39,40 @@ const APP_DATABASE = {
             </div>
         `
     },
+    "singbox": {
+        name: "Singbox UI", icon: "fa-solid fa-box", url: "https://github.com/Leadaxe/singbox-launcher/releases/latest",
+        guide: `
+            <div class="step-list">
+                <div class="step-item">Скопируйте ссылку на подписку.</div>
+                <div class="step-item">Запустите Singbox-launcher и перейдите во вкладку профилей.</div>
+                <div class="step-item">Нажмите <b>«Добавить»</b> и вставьте вашу ссылку.</div>
+                <div class="step-item">Сделайте тест задержки и выберите оптимальный маршрут.</div>
+                <div class="step-item">Нажмите главную кнопку старта для активации туннеля.</div>
+            </div>
+        `
+    },
+    "karing": {
+        name: "Karing", icon: "fa-solid fa-paper-plane", url: "https://github.com/KaringX/karing/releases/latest",
+        guide: `
+            <div class="step-list">
+                <div class="step-item">Скопируйте ссылку на подписку.</div>
+                <div class="step-item">Откройте приложение Karing.</div>
+                <div class="step-item">Нажмите на значок <b>«+»</b> и выберите <b>«Импорт из буфера обмена»</b>.</div>
+                <div class="step-item">Запустите тест задержки.</div>
+                <div class="step-item">Выберите лучший сервер и сдвиньте переключатель подключения.</div>
+            </div>
+        `
+    },
     "v2rayng": {
-        name: "v2rayNG", icon: "fa-solid fa-paper-plane", url: "https://github.com/2dust/v2rayNG/releases/latest",
+        name: "v2rayNG", icon: "fa-brands fa-android", url: "https://github.com/2dust/v2rayNG/releases/latest",
         guide: `
             <div class="step-list">
                 <div class="step-item">Скопируйте ссылку на подписку.</div>
                 <div class="step-item">В приложении нажмите на <b>«+»</b> (справа сверху) -> <b>«Импорт из буфера обмена»</b>.</div>
-                <div class="step-item">Нажмите три точки -> <b>«Проверка профилей группы»</b>. Дождитесь окончания.</div>
+                <div class="step-item">Нажмите три точки -> <b>«Проверка профилей группы»</b>.</div>
                 <div class="step-item">Снова три точки -> <b>«Сортировка по результатам теста»</b>.</div>
-                <div class="step-item">Выберите сервер с зеленым пингом и нажмите кнопку <b>▶️ (Старт)</b> в правом нижнем углу.</div>
+                <div class="step-item">Выберите сервер с зеленым пингом и нажмите кнопку <b>▶️ (Старт)</b>.</div>
             </div>
-            <details>
-                <summary><i class="fa-solid fa-wrench" style="color:var(--cyber-blue)"></i> Решение проблем подключения</summary>
-                <div class="details-content">
-                    <p><b>Нет интернета при подключении:</b><br>Убедитесь, что в настройках (левое верхнее меню) включен режим TUN.</p>
-                    <p><b>Конфиги не появились после добавления:</b><br>Нажмите три полоски (меню) -> «Группы» -> Нажмите иконку обновления (кружок со стрелкой) справа сверху.</p>
-                    <p><b>Ошибка "Cбой проверки интернет-соединения: net/http: 12X handshake timeout":</b></p>
-                    <ol>
-                        <li>Зажмите иконку v2rayNG на рабочем столе -> "О приложении".</li>
-                        <li>Нажмите "Остановить".</li>
-                        <li>Запустите приложение заново.</li>
-                    </ol>
-                    <p><b>Ошибка "Fail to detect internet connection: io: read/write closed pipe":</b></p>
-                    <ol>
-                        <li>Сделайте принудительную остановку приложения (как в шаге выше).</li>
-                        <li>Запустите приложение, нажмите "три точки" -> "Проверка профилей группы".</li>
-                        <li>Отсортируйте и выберите ДРУГОЙ сервер с низким пингом.</li>
-                    </ol>
-                </div>
-            </details>
         `
     },
     "v2raytun": {
@@ -90,7 +82,7 @@ const APP_DATABASE = {
                 <div class="step-item">Скопируйте ссылку на подписку.</div>
                 <div class="step-item">Откройте v2RayTun и перейдите в раздел управления серверами.</div>
                 <div class="step-item">Нажмите иконку <b>добавления</b> -> выберите <b>«Импорт из буфера обмена»</b>.</div>
-                <div class="step-item">Обновите подписку, выберите сервер с зеленым пингом и нажмите огромную кнопку старта.</div>
+                <div class="step-item">Обновите подписку, выберите сервер с зеленым пингом и нажмите кнопку старта.</div>
             </div>
         `
     },
@@ -100,23 +92,29 @@ const APP_DATABASE = {
             <div class="step-list">
                 <div class="step-item">Скопируйте ссылку на подписку с нашего сайта.</div>
                 <div class="step-item">Откройте V2Box, перейдите во вкладку <b>«Config»</b>.</div>
-                <div class="step-item">Нажмите на <b>«+»</b> (в правом верхнем углу) -> <b>«Добавить подписку»</b>.</div>
-                <div class="step-item">Вставьте ссылку в поле <code>URL</code>, введите любое Имя и сохраните.</div>
-                <div class="step-item">Дождитесь проверки пинга, выберите сервер (тапнув по нему) и нажмите переключатель <b>«Подключиться»</b> внизу экрана.</div>
+                <div class="step-item">Нажмите на <b>«+»</b> -> <b>«Добавить подписку»</b>.</div>
+                <div class="step-item">Вставьте ссылку в поле <code>URL</code>, введите Имя и сохраните.</div>
+                <div class="step-item">Дождитесь проверки пинга, выберите сервер и нажмите <b>«Подключиться»</b>.</div>
             </div>
-            <details>
-                <summary><i class="fa-solid fa-rotate"></i> Как обновить конфиги?</summary>
-                <div class="details-content">
-                    Перейдите во вкладку <b>«Config»</b> и нажмите на иконку обновления (круговая стрелка) слева от названия вашей подписки.
-                </div>
-            </details>
+        `
+    },
+    "shadowrocket": {
+        name: "Shadowrocket", icon: "fa-solid fa-rocket", url: "https://apps.apple.com/us/app/shadowrocket/id932747118",
+        guide: `
+            <div class="step-list">
+                <div class="step-item">Скопируйте ссылку на подписку.</div>
+                <div class="step-item">Откройте Shadowrocket (клиент платный, но самый стабильный на iOS).</div>
+                <div class="step-item">Нажмите <b>«+»</b> в правом верхнем углу, выберите тип <b>«Subscribe»</b>.</div>
+                <div class="step-item">Вставьте ссылку в поле URL и сохраните.</div>
+                <div class="step-item">Сделайте тест подключения (Connectivity Test), выберите сервер и включите VPN.</div>
+            </div>
         `
     },
     "streisand": {
         name: "Streisand", icon: "fa-solid fa-shield-cat", url: "https://apps.apple.com/us/app/streisand/id6450534064",
         guide: `
             <div class="step-list">
-                <div class="step-item">Скопируйте ссылку на маршрут (БС или ЧС).</div>
+                <div class="step-item">Скопируйте ссылку на маршрут.</div>
                 <div class="step-item">Откройте Streisand, нажмите на иконку <b>«+»</b> в правом верхнем углу.</div>
                 <div class="step-item">Выберите <b>«Add Subscription»</b>.</div>
                 <div class="step-item">Вставьте ссылку в поле <code>URL</code> и сохраните.</div>
@@ -132,25 +130,20 @@ const APP_DATABASE = {
                 <div class="step-item">Скопируйте ссылку на подписку.</div>
                 <div class="step-item">Откройте приложение Hiddify и нажмите <b>«Новый профиль»</b>.</div>
                 <div class="step-item">Выберите <b>«Добавить из буфера обмена»</b>.</div>
-                <div class="step-item"><b>Важно:</b> Перейдите в настройки программы и измените "Вариант маршрутизации" на <b>"Индонезия"</b> (или "Россия", если доступно).</div>
-                <div class="step-item">Нажмите огромную круглую кнопку посередине экрана для запуска VPN.</div>
-                <div class="step-item">Для смены сервера (при включенном VPN) перейдите во вкладку <b>«Прокси»</b>.</div>
+                <div class="step-item"><b>Важно:</b> Перейдите в настройки программы и измените "Вариант маршрутизации" на <b>"Индонезия"</b> (или "Россия").</div>
+                <div class="step-item">Нажмите огромную круглую кнопку посередине экрана для запуска.</div>
             </div>
-            <details>
-                <summary><i class="fa-solid fa-rotate"></i> Как обновить конфиги?</summary>
-                <div class="details-content">
-                    Зайдите в приложение Hiddify, выберите нужный вам профиль и нажмите <b>слева от названия профиля на иконку обновления</b>.
-                </div>
-            </details>
         `
     }
 };
 
 const PLATFORMS = {
-    windows:['throne', 'nekobox', 'v2rayn', 'hiddify'],
-    android:['v2rayng', 'v2raytun', 'nekobox', 'hiddify'],
-    ios:['streisand', 'v2box', 'v2raytun', 'hiddify'],
-    linux:['throne', 'nekobox', 'hiddify']
+    windows:['throne', 'nekobox', 'v2rayn', 'hiddify', 'karing', 'singbox'],
+    android:['v2rayng', 'nekobox', 'v2raytun', 'hiddify', 'karing'],
+    androidtv:['v2rayng'],
+    ios:['v2box', 'streisand', 'shadowrocket', 'karing', 'v2raytun', 'hiddify'],
+    mac:['hiddify', 'throne', 'karing', 'singbox'],
+    linux:['throne', 'nekobox', 'hiddify', 'karing']
 };
 
 let currentPlatform = 'windows';
@@ -158,13 +151,17 @@ let currentAppId = PLATFORMS['windows'][0];
 
 function init() {
     const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes("android")) currentPlatform = 'android';
-    else if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("macintosh")) currentPlatform = 'ios';
+    if (ua.includes("android") && (ua.includes("tv") || window.innerWidth > 1000)) currentPlatform = 'androidtv';
+    else if (ua.includes("android")) currentPlatform = 'android';
+    else if (ua.includes("iphone") || ua.includes("ipad")) currentPlatform = 'ios';
+    else if (ua.includes("macintosh") || ua.includes("mac os")) currentPlatform = 'mac';
     else if (ua.includes("linux")) currentPlatform = 'linux';
     else currentPlatform = 'windows';
     
     currentAppId = PLATFORMS[currentPlatform][0];
     updateUI();
+    initScrollSpy();
+    initReveal();
 }
 
 function switchPlatform(platform) {
@@ -199,8 +196,48 @@ function updateUI() {
     const btn = document.getElementById('download-btn');
     btn.href = currentApp.url;
     document.getElementById('app-name-display').innerText = currentApp.name;
-    
     document.getElementById('instruction-text').innerHTML = currentApp.guide;
+}
+
+function initReveal() {
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    reveals.forEach(reveal => observer.observe(reveal));
+}
+
+function initScrollSpy() {
+    const sections = document.querySelectorAll('section');
+    const navBtns = document.querySelectorAll('.nav-btn');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const currentId = entry.target.getAttribute('id');
+                navBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-target') === currentId) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: '-40% 0px -60% 0px' });
+
+    sections.forEach(sec => observer.observe(sec));
+
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+        });
+    });
 }
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
