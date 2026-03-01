@@ -5,7 +5,7 @@
     --bg-card: rgba(24, 24, 28, 0.85);
     --bg-hover: rgba(40, 35, 45, 0.9);
     
-    /* Touhou Accents (Hakurei Red, Yukari Purple, Master Spark Orange) */
+    /* Touhou Accents (Hakurei Red, Yukari Purple, Sakura Pink) */
     --accent: #f97316; 
     --accent-glow: rgba(249, 115, 22, 0.4);
     --accent-dim: rgba(249, 115, 22, 0.15);
@@ -36,7 +36,6 @@ body {
     color: var(--text-main);
     min-height: 100vh;
     display: flex; justify-content: center;
-    /* Subtle magical geometry + Cyberpunk grid */
     background-image: 
         radial-gradient(circle at 15% 30%, rgba(225, 29, 72, 0.05) 0%, transparent 50%),
         radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 60%),
@@ -48,6 +47,7 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     word-break: break-word;
+    scroll-behavior: smooth;
 }
 
 .container { width: 100%; max-width: 1150px; z-index: 10; display: flex; flex-direction: column; gap: clamp(24px, 5vw, 40px); }
@@ -99,7 +99,7 @@ h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; }
 .btn-secondary:hover { background: var(--bg-hover); border-color: var(--touhou-purple); color: #fff; }
 
 /* HERO */
-.hero { text-align: center; padding: 10px 0 20px 0; display: flex; flex-direction: column; align-items: center; }
+.hero { text-align: center; padding: 20px 0 30px 0; display: flex; flex-direction: column; align-items: center; }
 .status-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2);
@@ -111,22 +111,63 @@ h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; }
 .status-badge .dot { width: 8px; height: 8px; background: var(--touhou-purple); border-radius: 50%; box-shadow: 0 0 10px var(--touhou-purple); animation: pulse 2s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-.hero h1 { font-size: clamp(2rem, 8vw, 4.5rem); margin-bottom: 12px; line-height: 1.1; }
+.hero h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin-bottom: 20px; line-height: 1.1; letter-spacing: -2px; }
 .hero h1 span { color: var(--touhou-red); display: inline-block; }
 .hero h1 span:hover { animation: glitch 0.2s linear infinite; cursor: crosshair; }
-.hero p { color: var(--text-dim); font-size: clamp(0.9rem, 4vw, 1.15rem); max-width: 650px; margin: 0 auto 30px auto; line-height: 1.5; }
+.hero p { 
+    color: var(--text-dim); 
+    font-size: clamp(1rem, 4vw, 1.2rem); 
+    max-width: 750px; 
+    margin: 0 auto 35px auto; 
+    line-height: 1.6;
+    text-align: center;
+}
 
 /* GRID LAYOUT */
 .grid-layout { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 @media (min-width: 950px) { .grid-layout { grid-template-columns: 340px 1fr; } }
 
-/* GLASS CARDS */
+/* GLASS CARDS & SECTIONS */
 .glass-card { 
     background: var(--bg-card); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border); border-radius: 20px; padding: clamp(16px, 4vw, 32px);
+    border: 1px solid var(--border); border-radius: 20px; padding: clamp(20px, 5vw, 40px);
     box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     width: 100%;
     overflow: hidden;
+}
+
+.content-section {
+    margin-top: 20px;
+    scroll-margin-top: 40px;
+}
+
+.content-section h2 {
+    font-size: 1.8rem; color: #fff; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+}
+
+.content-section h2 i { color: var(--touhou-purple); }
+
+.text-block {
+    font-size: 1rem; color: var(--text-dim); line-height: 1.7;
+}
+
+.text-block p { margin-bottom: 16px; }
+.text-block p:last-child { margin-bottom: 0; }
+.text-block b, .text-block strong { color: var(--text-main); }
+.text-block i { color: var(--touhou-sakura); }
+
+.text-block ul, .text-block ol { padding-left: 20px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.text-block li::marker { color: var(--touhou-purple); font-weight: bold; }
+
+.text-block blockquote { 
+    border-left: 3px solid var(--touhou-red); 
+    padding-left: 16px; 
+    font-style: italic; 
+    background: rgba(225, 29, 72, 0.05); 
+    border-radius: 0 8px 8px 0; 
+    padding: 16px; 
+    margin-bottom: 16px;
+    color: var(--text-main);
 }
 
 /* STATS & SYS LOG */
@@ -201,27 +242,20 @@ h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; }
 .step-item b { color: #fff; }
 .step-item code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 6px; font-size: 0.85rem; color: var(--cyber-blue); word-break: break-all; border: 1px solid var(--border); }
 
-/* ACCORDION FOR FIXES AND KNOWLEDGE BASE */
-details { 
-    background: rgba(0,0,0,0.3); border: 1px solid var(--border); 
-    border-radius: 12px; margin-top: 12px; transition: var(--trans); 
-    overflow: hidden;
+/* TABLES */
+.cyber-table {
+    width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px;
+    font-size: 0.9rem; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
-details[open] { background: var(--bg-surface); border-color: var(--border-light); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-summary { 
-    padding: 16px; cursor: pointer; font-weight: 700; font-size: 0.95rem; 
-    color: var(--text-main); outline: none; list-style: none; display: flex; 
-    align-items: center; justify-content: space-between; user-select: none; 
+.cyber-table th, .cyber-table td {
+    padding: 16px; text-align: left; border: 1px solid var(--border); line-height: 1.5;
 }
-summary::-webkit-details-marker { display: none; }
-summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; color: var(--touhou-purple); transition: transform 0.3s ease; }
-details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sakura); }
-.details-content { padding: 0 16px 16px 16px; font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
-.details-content p { margin-bottom: 12px; }
-.details-content p:last-child { margin-bottom: 0; }
-.details-content ul, .details-content ol { padding-left: 20px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
-.details-content li::marker { color: var(--touhou-purple); font-weight: bold; }
-.details-content blockquote { border-left: 3px solid var(--touhou-red); padding-left: 12px; font-style: italic; background: rgba(225, 29, 72, 0.05); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 12px;}
+.cyber-table th {
+    background: rgba(139, 92, 246, 0.15); color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+}
+.cyber-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.cyber-table td b { color: #fff; }
 
 /* SUBSCRIPTION CARDS */
 .sub-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -311,3 +345,19 @@ details[open] summary::after { transform: rotate(180deg); color: var(--touhou-sa
 .footer { text-align: center; color: var(--text-dark); font-size: 0.85rem; padding-top: 20px; font-weight: 600; margin-bottom: 20px;}
 .footer a { color: var(--text-dim); text-decoration: none; transition: 0.2s; border-bottom: 1px dashed var(--border); padding-bottom: 2px;}
 .footer a:hover { color: var(--touhou-sakura); border-color: var(--touhou-sakura); }
+
+.disclaimer-block {
+    margin-top: 40px; padding: 24px; border: 1px solid rgba(225, 29, 72, 0.3); border-radius: 20px;
+    background: rgba(225, 29, 72, 0.05); font-size: 0.85rem; color: var(--text-dim); text-align: justify; line-height: 1.6;
+}
+.disclaimer-block b { color: var(--touhou-red); font-size: 1rem; display: block; margin-bottom: 10px; text-align: center; }
+
+/* ACCORDION (For minor stuff) */
+details { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; margin-top: 16px; transition: var(--trans); }
+details[open] { background: var(--bg-surface); border-color: var(--border-light); }
+summary { padding: 14px 16px; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text-main); outline: none; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; color: var(--accent); transition: transform 0.3s ease; }
+details[open] summary::after { transform: rotate(180deg); }
+.details-content { padding: 0 16px 16px 16px; font-size: 0.85rem; color: var(--text-dim); }
+.details-content ol { padding-left: 20px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
