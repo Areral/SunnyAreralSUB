@@ -1,1 +1,1 @@
-# 🦇 Scarlet Devil Network
+🦇 Scarlet Devil Network
